@@ -6,7 +6,7 @@ Content-Type: application/json
   "name": "Colombia",
   "price": 15000,
   "description": "고소한 원두",
-  "image": "colombia.jpg"
+  "imageUrl": "colombia.jpg"
 }
 
 ###
@@ -19,7 +19,7 @@ Content-Type: application/json
   "name": "",
   "price": -1000,
   "description": "테스트 상품",
-  "image": "test.jpg"
+  "imageUrl": "test.jpg"
 }
 
 ###
@@ -32,10 +32,20 @@ Content-Type: application/json
   "name": "Colombia Premium",
   "price": 19000,
   "description": "더 고소한 원두",
-  "image": "colombia-premium.jpg"
+  "imageUrl": "colombia-premium.jpg"
 }
 
 ###
 
 ### 관리자 상품 삭제
 DELETE http://localhost:8080/api/v1/admin/products/1
+
+###
+
+### 고객 전체 상품 조회
+GET http://localhost:8080/api/v1/products
+
+###
+
+### 고객 상품 상세 조회
+GET http://localhost:8080/api/v1/products/1

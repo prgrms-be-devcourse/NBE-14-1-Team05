@@ -1,8 +1,11 @@
 package com.back.nbe141team5.order.entity;
 
+import com.back.nbe141team5.product.entity.Product;
 import jakarta.persistence.*;
+import lombok.Getter;
 
 @Entity
+@Getter
 @Table(name = "order_items")
 public class OrderItem {
 
@@ -16,7 +19,11 @@ public class OrderItem {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "order_id")
-    private Order order;
+    private CoffeeOrder order;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "product_id")
+    private Product product;
 
     public OrderItem() {
     }

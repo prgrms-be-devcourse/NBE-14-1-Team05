@@ -2,8 +2,9 @@
 
 import Link from "next/link";
 import { addToCart, getCart } from "@/types/cart";
-import { formatKRW } from "@/app/cart/page";
+
 import { useEffect, useState } from "react";
+import { formatKRW } from "@/lib/format";
 
 type Product = {
     id: number;

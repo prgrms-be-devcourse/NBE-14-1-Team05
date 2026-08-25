@@ -9,6 +9,10 @@ export type CartProduct = {
 const KEY = "cart_items";
 
 export function getCart(): CartProduct[] {
+  if (typeof window === "undefined") {
+    return [];
+  }
+
   try {
     const parsed = JSON.parse(localStorage.getItem(KEY) ?? "[]");
     return Array.isArray(parsed) ? parsed : [];

@@ -2,7 +2,7 @@
 
 import { CartProduct, getCart, removeFromCart, updateQuantity } from "@/types/cart";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 export function formatKRW(n: number) {
     return n.toLocaleString("ko-KR") + "원";
@@ -10,11 +10,7 @@ export function formatKRW(n: number) {
 
 export default function CartPage() {
     const router = useRouter();
-    const [items, setItems] = useState<CartProduct[]>([]);
-
-    useEffect(() => {
-        setItems(getCart());
-    }, []);
+    const [items, setItems] = useState<CartProduct[]>(getCart);
 
     function handleQuantity(id: number, delta: number) {
         const next = items.map((i) =>

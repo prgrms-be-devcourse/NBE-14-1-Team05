@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { addToCart, getCart } from "@/types/cart";
 import { formatKRW } from "@/app/cart/page";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 type Product = {
   id: number;
@@ -22,15 +22,13 @@ const PRODUCTS: Product[] = [
 ];
 
 export default function Home() {
-  const [cartCount, setCartCount] = useState(0);
+  const [cartCount, setCartCount] = useState(() =>
+    getCart().reduce((sum, item) => sum + item.quantity, 0)
+  );
 
   function refreshCount() {
     setCartCount(getCart().reduce((s, i) => s + i.quantity, 0));
   }
-
-  useEffect(() => {
-    refreshCount();
-  }, []);
 
   function handleAdd(product: Product) {
     addToCart(product);

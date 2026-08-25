@@ -12,19 +12,59 @@ import com.back.nbe141team5.product.exception.ProductNotFoundException;
 import com.back.nbe141team5.product.repository.ProductRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class OrderService {
 
     private final OrderRepository orderRepository;
     private final ProductRepository productRepository;
 
-    // 주문 생성
+    // [메인 진입점] 주문 생성 요청 처리
+    @Transactional
     public Long createOrder(OrderRequest request) {
+        LocalDateTime now = LocalDateTime.now();
+
+        return tryMergeWithExistingOrder(request, now)
+                .orElseGet(() -> createNewOrder(request, now));
+    }
+
+    // 합배송 (주문 병합) 함수
+    private Optional<Long> tryMergeWithExistingOrder(OrderRequest request, LocalDateTime now) {
+        return orderRepository.findTopByEmailAndStatusOrderByOrderDateDesc(request.email(), OrderStatus.ORDERED)
+                .filter(order -> order.isSameAddress(request.address(), request.postcode()))
+                .filter(order -> DeliveryPolicyUtils.isSameDeliveryGroup(order.getOrderDate(), now))
+                .map(order -> {
+                    mergeItemsToOrder(request, order);
+                    return order.getId();
+                });
+    }
+
+    private void mergeItemsToOrder(OrderRequest request, CoffeeOrder order) {
+        // 상품 병합 및 총 금액 갱신
+        int additionalPrice = 0;
+        for (OrderItemRequest itemRequest : request.orderItems()) {
+            Product product = productRepository.findById(itemRequest.productId())
+                    .orElseThrow(() -> new ProductNotFoundException(itemRequest.productId()));
+            additionalPrice += product.getPrice() * itemRequest.quantity();
+            order.addOrUpdateOrderItem(product, itemRequest.quantity());
+        }
+        order.updateTotalPrice(order.getTotalPrice() + additionalPrice);
+    }
+
+
+    // 기존 신규 주문 생성 로직
+    @Transactional
+    public Long createNewOrder(OrderRequest request, LocalDateTime orderDate) {
+        // 배송 정책(14시 기준)에 따라 배송 예정일 계산 후 자정(00:00:00) 기준 일시로 변환
+        LocalDateTime deliveryDate = DeliveryPolicyUtils.calculateDeliveryDate(orderDate).atStartOfDay();
+
         int totalPrice = 0;
 
         // 1. 빈 주문서 생성
@@ -33,8 +73,9 @@ public class OrderService {
                 request.address(),
                 request.postcode(),
                 0,
-                LocalDateTime.now(),
-                OrderStatus.ORDERED
+                orderDate,
+                OrderStatus.ORDERED,
+                deliveryDate
         );
 
         // 2. 주문서에 원두 목록 확인 및 추가

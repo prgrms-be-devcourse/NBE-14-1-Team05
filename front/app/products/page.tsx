@@ -149,7 +149,11 @@ export default function Home() {
                         <button
                             key={index}
                             onClick={() => setPage(index)}
-                            className="px-3 py-1 border border-black bg-black text-white"
+                            className={
+                                page === index
+                                    ? "px-4 py-2 border border-black bg-black text-white transition transform hover:scale-105"
+                                    : "px-4 py-2 border border-black bg-white text-black hover:bg-neutral-100 transition transform hover:scale-105"
+                            }
                         >
                             {index + 1}
                         </button>

@@ -36,8 +36,8 @@ export default function Home() {
                 setProducts(data.content);
                 setTotalPages(data.totalPages);
             });
-//페이지 만큼 실행
-    }, [page]); 
+        //페이지 만큼 실행
+    }, [page]);
 
     function handleAdd(product: Product) {
 
@@ -144,7 +144,17 @@ export default function Home() {
                     ))}
 
                 </div>
-
+                <div className="flex justify-center gap-2 mt-10 ">
+                    {Array.from({ length: totalPages }, (_, index) => (
+                        <button
+                            key={index}
+                            onClick={() => setPage(index)}
+                            className="px-3 py-1 border border-black bg-black text-white"
+                        >
+                            {index + 1}
+                        </button>
+                    ))}
+                </div>
             </main>
 
         </div>

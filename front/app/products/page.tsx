@@ -18,6 +18,8 @@ export default function Home() {
 
     const [products, setProducts] = useState<Product[]>([]);
     const [cartCount, setCartCount] = useState(0);
+    const [page, setPage] = useState(0);
+    const [totalPages, setTotalPages] = useState(0);
 
     function refreshCount() {
         setCartCount(
@@ -28,13 +30,14 @@ export default function Home() {
     useEffect(() => {
         refreshCount();
 
-        fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/products`)
+        fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/products?page=${page}`)
             .then((response) => response.json())
             .then((data) => {
-                setProducts(data);
+                setProducts(data.content);
+                setTotalPages(data.totalPages);
             });
-
-    }, []);
+//페이지 만큼 실행
+    }, [page]); 
 
     function handleAdd(product: Product) {
 

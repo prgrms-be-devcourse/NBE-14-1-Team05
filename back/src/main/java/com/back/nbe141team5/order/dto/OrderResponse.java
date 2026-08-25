@@ -9,6 +9,8 @@ import java.util.List;
 public record OrderResponse(
         Long id,
         String email,
+        String address,
+        String postcode,
         LocalDateTime orderDate,
         OrderStatus status,
         Integer totalPrice,
@@ -24,6 +26,8 @@ public record OrderResponse(
         return new OrderResponse(
                 order.getId(),
                 order.getEmail(),
+                order.getAddress(),
+                order.getPostcode(),
                 order.getOrderDate(),
                 order.getStatus(),
                 order.getTotalPrice(),

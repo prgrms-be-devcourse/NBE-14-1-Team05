@@ -30,6 +30,8 @@ public class OrderService {
         // 1. 빈 주문서 생성
         CoffeeOrder order = new CoffeeOrder(
                 request.email(),
+                request.address(),
+                request.postcode(),
                 0,
                 LocalDateTime.now(),
                 OrderStatus.ORDERED

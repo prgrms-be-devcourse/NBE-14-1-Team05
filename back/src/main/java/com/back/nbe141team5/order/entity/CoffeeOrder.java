@@ -21,6 +21,10 @@ public class CoffeeOrder extends BaseEntity {
 
     private String email;
 
+    private String address;
+
+    private String postcode;
+
     private LocalDateTime orderDate;
 
     @Enumerated(EnumType.STRING)
@@ -33,8 +37,10 @@ public class CoffeeOrder extends BaseEntity {
     @OneToMany(mappedBy = "coffeeOrder", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<OrderItem> orderItems = new ArrayList<>();
 
-    public CoffeeOrder(String email, Integer totalPrice, LocalDateTime orderDate, OrderStatus status) {
+    public CoffeeOrder(String email, String address, String postcode, Integer totalPrice, LocalDateTime orderDate, OrderStatus status) {
         this.email = email;
+        this.address = address;
+        this.postcode = postcode;
         this.totalPrice = totalPrice;
         this.orderDate = orderDate;
         this.status = status;

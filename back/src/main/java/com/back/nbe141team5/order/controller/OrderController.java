@@ -32,7 +32,7 @@ public class OrderController {
         return ResponseEntity.ok(responses);
     }
 
-    // 주문 상세 조회
+    // 개별 주문 상세 조회
     @GetMapping("/{id}")
     public ResponseEntity<OrderResponse> getOrderById(@PathVariable Long id) {
         OrderResponse response = orderService.getOrderById(id);

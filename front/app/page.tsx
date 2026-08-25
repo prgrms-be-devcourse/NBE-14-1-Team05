@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { addToCart, getCart } from "@/types/cart";
-import { formatKRW } from "@/app/cart/page";
+import { formatKRW } from "@/lib/format";
 import { useEffect, useState } from "react";
 
 type Product = {

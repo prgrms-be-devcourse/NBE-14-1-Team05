@@ -53,7 +53,7 @@ export default function Home() {
 
             <header className="sticky top-0 z-10 bg-[#F7F6F3]/90 backdrop-blur border-b border-neutral-200 px-6 lg:px-12 py-4 flex items-center justify-between">
 
-                <span className="text-lg font-semibold tracking-tight">
+                <span className="text-lg font-semibold tracking-tight text-neutral-900">
                     SHOP
                 </span>
 
@@ -77,7 +77,7 @@ export default function Home() {
 
             <main className="px-6 lg:px-12 py-12 max-w-6xl mx-auto">
 
-                <h1 className="text-3xl font-light mb-8">
+                <h1 className="text-3xl font-light mb-8 text-neutral-900">
 
                     New{" "}
 
@@ -122,7 +122,7 @@ export default function Home() {
 
                                 <button
                                     onClick={() => handleAdd(product)}
-                                    className="text-xs px-3 py-1.5 border border-neutral-300 rounded-sm hover:bg-black hover:text-white hover:border-black transition"
+                                    className="text-xs px-4 py-2 bg-black text-white border border-black rounded-sm hover:bg-neutral-800 transition"
                                 >
                                     담기
                                 </button>

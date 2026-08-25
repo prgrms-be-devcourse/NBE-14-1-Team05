@@ -39,18 +39,18 @@ export default function ProductDetailPage() {
                     />
                 </div>
                 <div>
-  <h1 className="text-4xl font-semibold !text-black">
-    {product.name}
-  </h1>
+                    <h1 className="text-4xl font-semibold !text-black">
+                        {product.name}
+                    </h1>
 
-  <p className="text-2xl font-medium !text-black mt-6">
-    {product.price.toLocaleString("ko-KR")}원
-  </p>
+                    <p className="text-2xl font-medium !text-black mt-6">
+                        {product.price.toLocaleString("ko-KR")}원
+                    </p>
 
-  <p className="text-lg text-neutral-600 mt-12 leading-8">
-    {product.description}
-  </p>
-</div>
+                    <p className="text-lg text-neutral-600 mt-12 leading-8">
+                        {product.description}
+                    </p>
+                </div>
             </div>
         </main>
     );

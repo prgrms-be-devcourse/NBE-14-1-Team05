@@ -57,22 +57,28 @@ export default function Home() {
                 <span className="text-lg font-semibold tracking-tight text-neutral-900">
                     SHOP
                 </span>
+                {/* TODO: 로그인/권한 기능 구현 후 ADMIN 사용자에게만 노출 */}
+                <div className="flex items-center gap-5">
+                    <Link
+                        href="/admin"
+                        className="text-sm text-neutral-700 hover:text-black transition"
+                    >
+                        관리자
+                    </Link>
 
-                <Link
-                    href="/cart"
-                    className="flex items-center gap-2 text-sm text-neutral-700 hover:text-black transition"
-                >
-                    장바구니
+                    <Link
+                        href="/cart"
+                        className="flex items-center gap-2 text-sm text-neutral-700 hover:text-black transition"
+                    >
+                        장바구니
 
-                    {cartCount > 0 && (
-
-                        <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-black text-white text-xs tabular-nums">
-                            {cartCount}
-                        </span>
-
-                    )}
-
-                </Link>
+                        {cartCount > 0 && (
+                            <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-black text-white text-xs tabular-nums">
+                                {cartCount}
+                            </span>
+                        )}
+                    </Link>
+                </div>
 
             </header>
 

@@ -1,20 +1,25 @@
 package com.back.nbe141team5.order.dto;
 
 import com.back.nbe141team5.order.entity.OrderItem;
-import lombok.Getter;
 
-@Getter
-public class OrderItemResponse {
+public record OrderItemResponse(
+        Long id,
+        Long productId,
+        String productName,
+        Integer quantity
+) {
+    public static OrderItemResponse from(OrderItem item) {
+        Long prodId = null;
 
-    private Long id;
-    private Long productId;
-    private String productName;
-    private Integer quantity;
+        if (item.getProduct() != null) {
+            prodId = item.getProduct().getId();
+        }
 
-    public OrderItemResponse(OrderItem item) {
-        this.id = item.getId();
-        this.productId = item.getProduct() != null ? item.getProduct().getId() : null;
-        this.productName = item.getProductName();
-        this.quantity = item.getQuantity();
+        return new OrderItemResponse(
+                item.getId(),
+                prodId,
+                item.getProductName(),
+                item.getQuantity()
+        );
     }
 }

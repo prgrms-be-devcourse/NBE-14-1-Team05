@@ -18,8 +18,7 @@ class Nbe141Team5ApplicationTests {
                 "아메리카노",
                 4500,
                 "깔끔하고 고소한 커피",
-                "americano.jpg",
-                true
+                "americano.jpg"
         );
 
         productRepository.save(product);
@@ -31,8 +30,7 @@ class Nbe141Team5ApplicationTests {
                 "옛날 커피",
                 1500,
                 "달달한 커피",
-                "coffee.jpg",
-                true
+                "coffee.jpg"
         );
 
         productRepository.save(product);

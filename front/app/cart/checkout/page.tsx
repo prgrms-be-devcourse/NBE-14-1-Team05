@@ -81,7 +81,7 @@ export default function CheckoutPage() {
                 영수증을 <span className="text-neutral-600">{form.email}</span>로 발송했습니다.
             </p>
             <Link
-            href="/cart"
+            href="/products"
             className="mt-8 inline-flex items-center gap-2 bg-black text-white text-sm font-medium px-8 py-3 hover:bg-neutral-800 transition rounded-sm"
             >
             쇼핑 계속하기

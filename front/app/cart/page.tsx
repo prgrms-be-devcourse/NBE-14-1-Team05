@@ -89,7 +89,7 @@ export default function CartPage() {
             )}
 
             <Link
-                href="/"
+                href="/products"
                 className="text-center text-xs text-neutral-500 hover:text-neutral-300 transition pb-2 underline underline-offset-2"
             >
                 쇼핑 계속하기
@@ -109,7 +109,7 @@ export default function CartPage() {
                 </p>
                 <p className="text-neutral-400 text-sm mt-3">상품을 담아볼까요?</p>
                 <Link
-                    href="/"
+                    href="/products"
                     className="mt-8 inline-flex items-center gap-2 bg-black text-white text-sm font-medium px-8 py-3 hover:bg-neutral-800 transition rounded-sm"
                 >
                     상품 보러 가기 →

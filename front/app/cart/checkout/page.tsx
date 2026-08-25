@@ -5,12 +5,18 @@ import { formatKRW } from "@/lib/format";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
+/**
+ * 현재 시각이 오후 2시(14시) 이후인지 여부를 반환
+ */
 function isAfter14() {
   return new Date().getHours() >= 14;
 }
 
 type Step = "form" | "done";
 
+/**
+ * 결제 페이지: 배송 정보 입력, 유효성 검사, 결제 진행 및 완료 화면 처리
+ */
 export default function CheckoutPage() {
 
     const [items, setItems] = useState<CartProduct[]>([]);
@@ -26,11 +32,17 @@ export default function CheckoutPage() {
     const [form, setForm] = useState({ email: "", address: "", postcode: "" });
     const [errors, setErrors] = useState<Partial<typeof form>>({});
 
+    /**
+     * 입력 필드 값을 갱신하고 해당 필드의 에러 메시지를 초기화
+     */
     function set(field: keyof typeof form, value: string) {
         setForm((prev) => ({ ...prev, [field]: value }));
         setErrors((prev) => ({ ...prev, [field]: "" }));
     }
 
+    /**
+     * 이메일/주소/우편번호 입력값을 검증하고 에러 메시지를 설정
+     */
     function validate() {
         const e: Partial<typeof form> = {};
         if (!form.email.trim() || !form.email.includes("@")) e.email = "올바른 이메일을 입력해 주세요.";
@@ -40,6 +52,9 @@ export default function CheckoutPage() {
         return Object.keys(e).length === 0;
     }
 
+    /**
+     * 결제를 진행: 유효성 검사 통과 시 로딩 표시 후 장바구니를 비우고 완료 단계로 전환
+     */
     function handlePay() {
         if (!validate()) return;
         setLoading(true);
@@ -177,10 +192,16 @@ export default function CheckoutPage() {
     );
     }
 
+    /**
+     * 에러 여부에 따라 입력 필드의 밑줄 색상을 다르게 적용한 클래스명을 반환
+     */
     function inputCls(error?: string) {
     return `w-full border-b ${error ? "border-red-400" : "border-neutral-200"} bg-transparent py-2 text-sm text-neutral-900 placeholder-neutral-300 focus:outline-none focus:border-neutral-500 transition`;
     }
 
+    /**
+     * 라벨과 에러 메시지를 포함한 입력 필드 래퍼를 렌더링
+     */
     function Field({ label, error, children }: { label: string; error?: string; children: React.ReactNode }) {
     return (
         <div>

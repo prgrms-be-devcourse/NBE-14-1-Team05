@@ -5,6 +5,9 @@ import { formatKRW } from "@/lib/format";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
+/**
+ * 장바구니 페이지: 담긴 상품 목록 조회/수량 변경/삭제 및 결제 페이지 진입
+ */
 export default function CartPage() {
     const [items, setItems] = useState<CartProduct[]>([]);
 
@@ -12,6 +15,9 @@ export default function CartPage() {
         setItems(getCart());
     }, []);
 
+    /**
+     * 상품 수량을 delta만큼 변경 (최소 1개 유지) 후 저장소에 반영
+     */
     function handleQuantity(id: number, delta: number) {
         const next = items.map((i) =>
             i.id === id ? { ...i, quantity: Math.max(1, i.quantity + delta) } : i
@@ -23,6 +29,9 @@ export default function CartPage() {
         if (item) updateQuantity(id, item.quantity);
     }
 
+    /**
+     * 장바구니에서 상품을 삭제
+     */
     function handleRemove(id: number) {
         setItems((prev) => prev.filter((i) => i.id !== id));
         removeFromCart(id);
@@ -125,6 +134,9 @@ export default function CartPage() {
     );
 }
 
+/**
+ * 장바구니 상품 한 줄(이미지/이름/가격/수량 조절/삭제)을 렌더링
+ */
 function CartRow({
     item,
     isLast,

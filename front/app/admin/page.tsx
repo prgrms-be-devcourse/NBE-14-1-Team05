@@ -5,27 +5,44 @@ import Link from "next/link";
 
 export default function AdminPage() {
   const [productCount, setProductCount] = useState(0);
+  const [orderCount, setOrderCount] = useState(0);
   const [loading, setLoading] = useState(true);
 
-  // 등록된 상품 개수 조회
+  // 대시보드 데이터 조회
   useEffect(() => {
-    fetch("/api/admin/products")
-      .then((response) => {
-        if (!response.ok) {
+    async function fetchDashboardData() {
+      try {
+        // 상품 개수 조회
+        const productResponse = await fetch("/api/admin/products");
+
+        if (!productResponse.ok) {
           throw new Error("상품 조회 실패");
         }
 
-        return response.json();
-      })
-      .then((products) => {
+        const products = await productResponse.json();
+
         setProductCount(products.length);
-      })
-      .catch((error) => {
-        console.error("상품 조회 실패:", error);
-      })
-      .finally(() => {
+
+        // 주문 개수 조회
+        const orderResponse = await fetch(
+          "http://localhost:8080/api/v1/orders"
+        );
+
+        if (!orderResponse.ok) {
+          throw new Error("주문 조회 실패");
+        }
+
+        const orders = await orderResponse.json();
+
+        setOrderCount(orders.length);
+      } catch (error) {
+        console.error("대시보드 데이터 조회 실패:", error);
+      } finally {
         setLoading(false);
-      });
+      }
+    }
+
+    fetchDashboardData();
   }, []);
 
   return (
@@ -45,7 +62,7 @@ export default function AdminPage() {
         </p>
       </div>
 
-      {/* 현황 */}
+      {/* 서비스 현황 */}
       <section>
         <h2 className="mb-4 text-lg font-semibold">
           서비스 현황
@@ -65,6 +82,7 @@ export default function AdminPage() {
 
                 <p className="mt-3 text-3xl font-bold">
                   {loading ? "-" : productCount}
+
                   {!loading && (
                     <span className="ml-1 text-lg font-medium">
                       개
@@ -86,15 +104,21 @@ export default function AdminPage() {
           {/* 주문 */}
           <div className="rounded-xl border border-neutral-200 bg-white p-6">
             <p className="text-sm font-medium text-neutral-500">
-              주문
+              전체 주문
             </p>
 
-            <p className="mt-3 text-2xl font-semibold text-neutral-400">
-              준비 중
+            <p className="mt-3 text-3xl font-bold">
+              {loading ? "-" : orderCount}
+
+              {!loading && (
+                <span className="ml-1 text-lg font-medium">
+                  건
+                </span>
+              )}
             </p>
 
             <p className="mt-4 text-sm text-neutral-400">
-              주문 기능 구현 후 연동 예정
+              현재 접수된 전체 주문
             </p>
           </div>
 

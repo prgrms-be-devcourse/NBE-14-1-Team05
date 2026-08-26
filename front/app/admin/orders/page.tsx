@@ -216,7 +216,7 @@ export default function AdminOrdersPage() {
   ).length;
 
   return (
-    <div className="space-y-7">
+    <div className="min-h-[85vh] space-y-7">
       {/* 페이지 상단 */}
       <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
         <div>
@@ -509,22 +509,22 @@ export default function AdminOrdersPage() {
         </div>
 
         <div className="overflow-x-auto">
-          <table className="w-full">
+          <table className="w-full table-fixed">
             <thead>
               <tr className="bg-[#FAFAF9] text-left text-xs font-semibold text-neutral-500">
-                <th className="w-16 px-4 py-4 text-center">번호</th>
+                <th className="w-14 px-3 py-4 text-center">번호</th>
 
                 <th className="px-6 py-4">주문자</th>
 
-                <th className="px-6 py-4">주문일시</th>
+                <th className="w-44 px-4 py-4">주문일시</th>
 
-                <th className="w-28 px-4 py-4 text-center">상태</th>
+                <th className="w-28 px-3 py-4 text-center">상태</th>
 
-                <th className="w-36 px-6 py-4">결제금액</th>
+                <th className="w-36 px-4 py-4 text-right">결제금액</th>
 
-                <th className="w-28 px-4 py-4 text-center">상태 변경</th>
+                <th className="w-28 px-3 py-4 text-center">상태 변경</th>
 
-                <th className="w-24 px-4 py-4 text-center">상세</th>
+                <th className="w-24 px-3 py-4 text-center">상세</th>
               </tr>
             </thead>
 
@@ -538,13 +538,16 @@ export default function AdminOrdersPage() {
                         : "hover:bg-[#FCFBF9]"
                     }`}
                   >
-                    <td className="px-4 py-5 text-center text-sm text-neutral-400">
+                    <td className="px-3 py-5 text-center text-sm text-neutral-400">
                       {index + 1}
                     </td>
 
-                    <td className="px-6 py-5">
+                    <td className="px-6 py-5 truncate">
                       <div>
-                        <p className="text-sm font-semibold text-neutral-900">
+                        <p
+                          className="truncate text-sm font-semibold text-neutral-900"
+                          title={order.email}
+                        >
                           {order.email}
                         </p>
 
@@ -554,22 +557,22 @@ export default function AdminOrdersPage() {
                       </div>
                     </td>
 
-                    <td className="px-6 py-5 text-sm text-neutral-500 whitespace-nowrap">
+                    <td className="px-4 py-5 text-sm text-neutral-500 whitespace-nowrap">
                       {formatDateTime(order.orderDate)}
                     </td>
 
-                    <td className="px-4 py-5 text-center whitespace-nowrap">
+                    <td className="px-3 py-5 text-center whitespace-nowrap">
                       <span className={statusBadge(order.status)}>
                         {statusLabel(order.status)}
                       </span>
                     </td>
 
-                    <td className="px-6 py-5 text-sm font-semibold text-neutral-800 whitespace-nowrap">
+                    <td className="px-4 py-5 text-right text-sm font-semibold text-neutral-800 whitespace-nowrap">
                       {order.totalPrice.toLocaleString("ko-KR")}원
                     </td>
 
                     {/* 원클릭 상태 변경 액션 버튼 */}
-                    <td className="px-4 py-5 text-center whitespace-nowrap">
+                    <td className="px-3 py-5 text-center whitespace-nowrap">
                       {order.status === "ORDERED" && (
                         <button
                           type="button"

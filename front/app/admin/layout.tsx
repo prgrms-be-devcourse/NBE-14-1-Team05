@@ -21,6 +21,10 @@ export default function AdminLayout({
             상품 관리
           </Link>
 
+          <Link href="/admin/orders">
+            주문 관리
+          </Link>
+
           <Link href="/">
             쇼핑몰로 돌아가기
           </Link>

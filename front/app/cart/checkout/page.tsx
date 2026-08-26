@@ -53,16 +53,38 @@ export default function CheckoutPage() {
     }
 
     /**
-     * 결제를 진행: 유효성 검사 통과 시 로딩 표시 후 장바구니를 비우고 완료 단계로 전환
+     * 결제를 진행: 유효성 검사 통과 시 주문 생성 API를 호출하고, 성공하면 장바구니를 비우고 완료 단계로 전환
      */
-    function handlePay() {
+    async function handlePay() {
         if (!validate()) return;
         setLoading(true);
-        setTimeout(() => {
+        try {
+            const res = await fetch("http://localhost:8080/api/v1/orders", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    email: form.email,
+                    address: form.address,
+                    postcode: form.postcode,
+                    orderItems: items.map((item) => ({
+                        productId: item.id,
+                        quantity: item.quantity,
+                    })),
+                }),
+            });
+
+            if (!res.ok) throw new Error("주문 생성에 실패했습니다.");
+
             saveCart([]);
-            setLoading(false);
             setStep("done");
-        }, 1800);
+        } catch (err) {
+            console.error(err);
+            alert("결제 처리 중 오류가 발생했습니다. 다시 시도해 주세요.");
+        } finally {
+            setLoading(false);
+        }
     }
 
     if (step === "done") {

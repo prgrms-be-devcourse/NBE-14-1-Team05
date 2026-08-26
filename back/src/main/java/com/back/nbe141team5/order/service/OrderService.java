@@ -60,7 +60,6 @@ public class OrderService {
 
 
     // 기존 신규 주문 생성 로직
-    @Transactional
     public Long createNewOrder(OrderRequest request, LocalDateTime orderDate) {
         // 배송 정책(14시 기준)에 따라 배송 예정일 계산 후 자정(00:00:00) 기준 일시로 변환
         LocalDateTime deliveryDate = DeliveryPolicyUtils.calculateDeliveryDate(orderDate).atStartOfDay();

@@ -102,25 +102,36 @@ export default function AdminPage() {
           </Link>
 
           {/* 주문 */}
-          <div className="rounded-xl border border-neutral-200 bg-white p-6">
-            <p className="text-sm font-medium text-neutral-500">
-              전체 주문
-            </p>
+          <Link
+            href="/admin/orders"
+            className="group rounded-xl border border-neutral-200 bg-white p-6 transition hover:border-neutral-400 hover:shadow-sm"
+          >
+            <div className="flex items-start justify-between">
+              <div>
+                <p className="text-sm font-medium text-neutral-500">
+                  전체 주문
+                </p>
 
-            <p className="mt-3 text-3xl font-bold">
-              {loading ? "-" : orderCount}
+                <p className="mt-3 text-3xl font-bold">
+                  {loading ? "-" : orderCount}
 
-              {!loading && (
-                <span className="ml-1 text-lg font-medium">
-                  건
-                </span>
-              )}
-            </p>
+                  {!loading && (
+                    <span className="ml-1 text-lg font-medium">
+                      건
+                    </span>
+                  )}
+                </p>
+              </div>
+
+              <span className="text-neutral-400 transition group-hover:translate-x-1">
+                →
+              </span>
+            </div>
 
             <p className="mt-4 text-sm text-neutral-400">
               현재 접수된 전체 주문
             </p>
-          </div>
+          </Link>
 
           {/* 회원 */}
           <div className="rounded-xl border border-neutral-200 bg-white p-6">

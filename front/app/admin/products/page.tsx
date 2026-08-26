@@ -138,7 +138,7 @@ const handleDelete = async (id: number) => {
               >
                 {/* 화면에 보여주는 순번 */}
                 <td className="p-4">
-                  {index + 1}
+                {page * 10 + index + 1}
                 </td>
 
                 <td className="p-4">

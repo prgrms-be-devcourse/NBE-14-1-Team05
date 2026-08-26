@@ -18,12 +18,12 @@ public class ProductService {
 
     // 전체 상품 조회
     public List<Product> getProductList() {
-        return productRepository.findAll();
+        return productRepository.findAllByIsActiveTrue();
     }
 
     // 상품 상세 조회
     public Product getProductDetail(Long id) {
-        return productRepository.findById(id)
+        return productRepository.findByIdAndIsActiveTrue(id)
                 .orElseThrow(() -> new ProductNotFoundException(id));
     }
 }

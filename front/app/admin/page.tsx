@@ -3,19 +3,11 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 
-type Order = {
-  id: number;
-  email: string;
-  orderDate: string;
-  totalPrice: number;
-  status: string;
-};
-
-const ORDER_STATUS_LABEL: Record<string, string> = {
-  ORDERED: "주문 완료",
-  SHIPPED: "배송 중",
-  DELIVERED: "배송 완료",
-};
+import {
+  ORDER_STATUS_LABEL,
+  type Order,
+  type OrderStatus,
+} from "@/types/order";
 
 export default function AdminPage() {
   const [productCount, setProductCount] = useState(0);
@@ -37,7 +29,7 @@ export default function AdminPage() {
 
         // 주문 조회
         const orderResponse = await fetch(
-          "http://localhost:8080/api/v1/orders"
+          "http://localhost:8080/api/v1/admin/orders",
         );
 
         if (!orderResponse.ok) {
@@ -67,8 +59,7 @@ export default function AdminPage() {
   const recentOrders = [...orders]
     .sort(
       (a, b) =>
-        new Date(b.orderDate).getTime() -
-        new Date(a.orderDate).getTime()
+        new Date(b.orderDate).getTime() - new Date(a.orderDate).getTime(),
     )
     .slice(0, 5);
 
@@ -85,9 +76,7 @@ export default function AdminPage() {
       {/* 상단 */}
       <div className="flex items-end justify-between">
         <div>
-          <p className="mb-2 text-sm font-medium text-[#9A7655]">
-            DASHBOARD
-          </p>
+          <p className="mb-2 text-sm font-medium text-[#9A7655]">DASHBOARD</p>
 
           <h1 className="text-3xl font-bold tracking-tight text-neutral-900">
             안녕하세요, 관리자님.
@@ -116,9 +105,7 @@ export default function AdminPage() {
         >
           <div className="flex items-start justify-between">
             <div>
-              <p className="text-sm font-medium text-neutral-500">
-                등록 상품
-              </p>
+              <p className="text-sm font-medium text-neutral-500">등록 상품</p>
 
               <div className="mt-4 flex items-end gap-1">
                 <span className="text-3xl font-bold tracking-tight text-neutral-900">
@@ -139,9 +126,7 @@ export default function AdminPage() {
           </div>
 
           <div className="mt-6 flex items-center justify-between border-t border-neutral-100 pt-4">
-            <span className="text-xs text-neutral-400">
-              현재 등록된 상품
-            </span>
+            <span className="text-xs text-neutral-400">현재 등록된 상품</span>
 
             <span className="text-sm text-neutral-400 transition group-hover:translate-x-1">
               →
@@ -156,9 +141,7 @@ export default function AdminPage() {
         >
           <div className="flex items-start justify-between">
             <div>
-              <p className="text-sm font-medium text-neutral-500">
-                전체 주문
-              </p>
+              <p className="text-sm font-medium text-neutral-500">전체 주문</p>
 
               <div className="mt-4 flex items-end gap-1">
                 <span className="text-3xl font-bold tracking-tight text-neutral-900">
@@ -179,9 +162,7 @@ export default function AdminPage() {
           </div>
 
           <div className="mt-6 flex items-center justify-between border-t border-neutral-100 pt-4">
-            <span className="text-xs text-neutral-400">
-              누적 주문
-            </span>
+            <span className="text-xs text-neutral-400">누적 주문</span>
 
             <span className="text-sm text-neutral-400 transition group-hover:translate-x-1">
               →
@@ -193,9 +174,7 @@ export default function AdminPage() {
         <div className="rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm">
           <div className="flex items-start justify-between">
             <div>
-              <p className="text-sm font-medium text-neutral-500">
-                오늘 주문
-              </p>
+              <p className="text-sm font-medium text-neutral-500">오늘 주문</p>
 
               <div className="mt-4 flex items-end gap-1">
                 <span className="text-3xl font-bold tracking-tight text-neutral-900">
@@ -216,9 +195,7 @@ export default function AdminPage() {
           </div>
 
           <div className="mt-6 border-t border-neutral-100 pt-4">
-            <span className="text-xs text-neutral-400">
-              오늘 접수된 주문
-            </span>
+            <span className="text-xs text-neutral-400">오늘 접수된 주문</span>
           </div>
         </div>
       </section>
@@ -266,9 +243,7 @@ export default function AdminPage() {
                     #{order.id}
                   </td>
 
-                  <td className="px-6 py-4 text-neutral-600">
-                    {order.email}
-                  </td>
+                  <td className="px-6 py-4 text-neutral-600">{order.email}</td>
 
                   <td className="px-6 py-4 text-neutral-500">
                     {formatDate(order.orderDate)}

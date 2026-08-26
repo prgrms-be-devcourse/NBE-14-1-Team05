@@ -48,15 +48,25 @@ export default function AdminProductsPage() {
   }, [page]);
 
   // 상품 삭제
-  const handleDelete = async (id: number) => {
+const handleDelete = async (id: number) => {
     const confirmed = window.confirm(
       "정말 이 상품을 삭제하시겠습니까?"
     );
-
+  
     if (!confirmed) {
       return;
     }
-
+  
+    // 삭제 실패 시 복구하기 위해 기존 목록 저장
+    const previousProducts = products;
+  
+    // 화면에서는 먼저 바로 삭제
+    setProducts((prevProducts) =>
+      prevProducts.filter(
+        (product) => product.id !== id
+      )
+    );
+  
     try {
       const response = await fetch(
         `/api/admin/products/${id}`,
@@ -64,21 +74,16 @@ export default function AdminProductsPage() {
           method: "DELETE",
         }
       );
-
+  
       if (!response.ok) {
         throw new Error("상품 삭제 실패");
       }
-
-      // 삭제 성공한 상품을 현재 화면에서도 제거
-      setProducts((prevProducts) =>
-        prevProducts.filter(
-          (product) => product.id !== id
-        )
-      );
-
-      alert("상품이 삭제되었습니다.");
     } catch (error) {
       console.error("상품 삭제 실패:", error);
+  
+      // 서버 삭제에 실패하면 다시 화면에 복구
+      setProducts(previousProducts);
+  
       alert("상품 삭제에 실패했습니다.");
     }
   };
@@ -86,20 +91,20 @@ export default function AdminProductsPage() {
   return (
     <div>
       {/* 페이지 상단 */}
-      <div className="flex items-center justify-between mb-8">
+      <div className="mb-8 flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-semibold">
             상품 관리
           </h1>
 
-          <p className="text-neutral-500 mt-2">
+          <p className="mt-2 text-neutral-500">
             등록된 상품을 조회하고 상품 정보를 관리할 수 있습니다.
           </p>
         </div>
 
         <Link
           href="/admin/products/new"
-          className="bg-black text-white px-5 py-3 rounded hover:bg-neutral-800 transition"
+          className="rounded bg-black px-5 py-3 text-white transition hover:bg-neutral-800"
         >
           + 상품 등록
         </Link>
@@ -113,7 +118,7 @@ export default function AdminProductsPage() {
       )}
 
       {/* 상품 목록 */}
-      <div className="bg-white border border-neutral-200 rounded-lg overflow-hidden">
+      <div className="overflow-hidden rounded-lg border border-neutral-200 bg-white">
         <table className="w-full">
           <thead className="bg-neutral-50">
             <tr className="text-left text-sm text-neutral-500">
@@ -148,23 +153,28 @@ export default function AdminProductsPage() {
                   {product.description}
                 </td>
 
+                {/* 관리 */}
                 <td className="p-4">
-                  {/* 수정할 때는 실제 DB ID 사용 */}
-                  <Link
-                    href={`/admin/products/${product.id}/edit`}
-                    className="mr-4 hover:underline"
-                  >
-                    수정
-                  </Link>
+                  <div className="flex items-center gap-1">
+                    {/* 수정할 때는 실제 DB ID 사용 */}
+                    <Link
+                      href={`/admin/products/${product.id}/edit`}
+                      className="rounded px-3 py-2 text-sm transition hover:bg-neutral-100"
+                    >
+                      수정
+                    </Link>
 
-                  {/* 삭제할 때도 실제 DB ID 사용 */}
-                  <button
-                    type="button"
-                    onClick={() => handleDelete(product.id)}
-                    className="text-red-500 hover:underline cursor-pointer"
-                  >
-                    삭제
-                  </button>
+                    {/* 삭제할 때도 실제 DB ID 사용 */}
+                    <button
+                      type="button"
+                      onClick={() =>
+                        handleDelete(product.id)
+                      }
+                      className="cursor-pointer rounded px-3 py-2 text-sm text-red-500 transition hover:bg-red-50 hover:text-red-600"
+                    >
+                      삭제
+                    </button>
+                  </div>
                 </td>
               </tr>
             ))}

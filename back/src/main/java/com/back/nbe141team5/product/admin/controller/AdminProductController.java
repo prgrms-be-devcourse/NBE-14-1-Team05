@@ -1,12 +1,12 @@
 package com.back.nbe141team5.product.admin.controller;
 
 import com.back.nbe141team5.product.admin.service.AdminProductService;
+import com.back.nbe141team5.product.dto.AdminProductPageResponse;
 import com.back.nbe141team5.product.dto.AdminProductResponse;
 import com.back.nbe141team5.product.dto.ProductCreateRequest;
 import com.back.nbe141team5.product.dto.ProductUpdateRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
@@ -24,6 +24,34 @@ public class AdminProductController {
             @Valid @RequestBody ProductCreateRequest request
     ) {
         return adminProductService.createProduct(request);
+    }
+
+    // 상품 목록 조회
+    @GetMapping
+    @ResponseStatus(HttpStatus.OK)
+    public AdminProductPageResponse getProducts(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "ACTIVE") String filter
+    ) {
+        var products = adminProductService
+                .getProducts(page, filter)
+                .map(AdminProductResponse::from);
+
+        long activeCount =
+                adminProductService.getActiveProductCount();
+
+        long inactiveCount =
+                adminProductService.getInactiveProductCount();
+
+        long allCount =
+                adminProductService.getTotalProductCount();
+
+        return AdminProductPageResponse.from(
+                products,
+                activeCount,
+                inactiveCount,
+                allCount
+        );
     }
 
     // 상품 단건 조회
@@ -44,7 +72,7 @@ public class AdminProductController {
         return adminProductService.updateProduct(id, request);
     }
 
-    // 상품 삭제
+    // 상품 판매 중단
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteProduct(
@@ -53,13 +81,20 @@ public class AdminProductController {
         adminProductService.deleteProduct(id);
     }
 
-    // 상품 목록 조회
-    @GetMapping
-    @ResponseStatus(HttpStatus.OK)
-    public Page<AdminProductResponse> getProducts(
-            @RequestParam(defaultValue = "0") int page
+    // 상품 판매 재개
+    @PatchMapping("/{id}/activate")
+    public AdminProductResponse activateProduct(
+            @PathVariable Long id
     ) {
-        return adminProductService.getProducts(page)
-                .map(AdminProductResponse::from);
+        return adminProductService.activateProduct(id);
+    }
+
+    // 상품 영구 삭제
+    @DeleteMapping("/{id}/permanent")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void permanentlyDeleteProduct(
+            @PathVariable Long id
+    ) {
+        adminProductService.permanentlyDeleteProduct(id);
     }
 }

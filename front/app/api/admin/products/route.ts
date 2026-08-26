@@ -1,68 +1,93 @@
-// 상품 목록 조회
+import { NextResponse } from "next/server";
+
+const API_BASE_URL =
+  process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:8080";
+
+// 관리자 상품 목록 조회
 export async function GET(request: Request) {
-    try {
-      const { searchParams } = new URL(request.url);
-      const page = searchParams.get("page") ?? "0";
-      const response = await fetch(
-        `http://localhost:8080/api/v1/admin/products?page=${page}`,
-        {
-          cache: "no-store",
-        }
-      );
-  
-      if (!response.ok) {
-        return Response.json(
-          { message: "상품 조회 실패" },
-          { status: response.status }
-        );
+  try {
+    const { searchParams } = new URL(request.url);
+
+    const page = searchParams.get("page") ?? "0";
+    const filter = searchParams.get("filter") ?? "ACTIVE";
+
+    const response = await fetch(
+      `${API_BASE_URL}/api/v1/admin/products?page=${page}&filter=${filter}`,
+      {
+        cache: "no-store",
       }
-  
-      const data = await response.json();
-  
-      return Response.json(data);
-    } catch (error) {
-      console.error("상품 조회 실패:", error);
-  
-      return Response.json(
-        { message: "백엔드 서버 연결 실패" },
-        { status: 500 }
+    );
+
+    if (!response.ok) {
+      const errorText = await response.text();
+
+      console.error(
+        "상품 목록 조회 실패:",
+        response.status,
+        errorText
+      );
+
+      return NextResponse.json(
+        { message: "상품 목록 조회 실패" },
+        { status: response.status }
       );
     }
+
+    const data = await response.json();
+
+    return NextResponse.json(data);
+  } catch (error) {
+    console.error("상품 목록 조회 실패:", error);
+
+    return NextResponse.json(
+      { message: "상품 목록 조회 중 오류가 발생했습니다." },
+      { status: 500 }
+    );
   }
-  
-  // 상품 등록
-  export async function POST(request: Request) {
-    try {
-      const body = await request.json();
-  
-      const response = await fetch(
-        "http://localhost:8080/api/v1/admin/products",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(body),
-        }
-      );
-  
-      const data = await response.json();
-  
-      if (!response.ok) {
-        return Response.json(data, {
-          status: response.status,
-        });
+}
+
+// 관리자 상품 등록
+export async function POST(request: Request) {
+  try {
+    const body = await request.json();
+
+    const response = await fetch(
+      `${API_BASE_URL}/api/v1/admin/products`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(body),
       }
-  
-      return Response.json(data, {
-        status: 201,
-      });
-    } catch (error) {
-      console.error("상품 등록 실패:", error);
-  
-      return Response.json(
-        { message: "상품 등록 중 오류가 발생했습니다." },
-        { status: 500 }
+    );
+
+    if (!response.ok) {
+      const errorText = await response.text();
+
+      console.error(
+        "상품 등록 실패:",
+        response.status,
+        errorText
+      );
+
+      return NextResponse.json(
+        { message: "상품 등록 실패" },
+        { status: response.status }
       );
     }
+
+    const data = await response.json();
+
+    return NextResponse.json(data, {
+      status: 201,
+    });
+  } catch (error) {
+    console.error("상품 등록 실패:", error);
+
+    return NextResponse.json(
+      { message: "상품 등록 중 오류가 발생했습니다." },
+      { status: 500 }
+    );
   }
+}

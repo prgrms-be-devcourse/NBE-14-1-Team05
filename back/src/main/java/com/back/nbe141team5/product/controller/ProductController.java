@@ -3,13 +3,9 @@ package com.back.nbe141team5.product.controller;
 import com.back.nbe141team5.product.dto.ProductResponse;
 import com.back.nbe141team5.product.service.ProductService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-
-import java.util.List;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequiredArgsConstructor
@@ -19,11 +15,9 @@ public class ProductController {
 
     //전체 상품 조회 API
     @GetMapping
-    public ResponseEntity<List<ProductResponse>> getProducts() {
-        List<ProductResponse> responses = productService.getProductList()
-                .stream()
-                .map(ProductResponse::from)
-                .toList();
+    public ResponseEntity<Page<ProductResponse>> getProducts(@RequestParam(defaultValue = "0") int page) {
+        //Page는 자체적으로 map() 지원
+        Page<ProductResponse> responses = productService.getProductList(page).map(ProductResponse::from);
         return ResponseEntity.ok(responses);  //상태 코드 200 & 데이터 보내기
     }
 

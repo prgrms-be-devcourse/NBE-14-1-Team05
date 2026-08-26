@@ -36,4 +36,9 @@ public class OrderItem {
     public void setCoffeeOrder(CoffeeOrder coffeeOrder) {
         this.coffeeOrder = coffeeOrder;
     }
+
+    // 동일한 주문이 있으면 수량을 늘려줄 수 있도록
+    public void addQuantity(Integer quantity) {
+        this.quantity += quantity;
+    }
 }

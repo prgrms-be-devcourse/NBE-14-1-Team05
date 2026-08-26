@@ -7,6 +7,9 @@ import com.back.nbe141team5.product.entity.Product;
 import com.back.nbe141team5.product.exception.ProductNotFoundException;
 import com.back.nbe141team5.product.repository.ProductRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -60,5 +63,11 @@ public class AdminProductService {
                 .orElseThrow(() -> new ProductNotFoundException(id));
 
         product.deactivate();
+    }
+
+    // 전체 상품 조회
+    public Page<Product> getProducts(int page) {
+        Pageable pageable = PageRequest.of(page, 10);
+        return productRepository.findAll(pageable);
     }
 }

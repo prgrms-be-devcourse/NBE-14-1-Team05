@@ -3,7 +3,7 @@ package com.back.nbe141team5.order.service;
 import com.back.nbe141team5.order.dto.OrderItemRequest;
 import com.back.nbe141team5.order.dto.OrderCreateRequest;
 import com.back.nbe141team5.order.dto.OrderResponse;
-import com.back.nbe141team5.order.dto.OrderUpdateRequest;
+import com.back.nbe141team5.order.dto.OrderAddressUpdateRequest;
 import com.back.nbe141team5.order.entity.CoffeeOrder;
 import com.back.nbe141team5.order.entity.OrderItem;
 import com.back.nbe141team5.order.entity.OrderStatus;
@@ -15,6 +15,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -110,6 +111,26 @@ public class OrderService {
         return OrderResponse.from(order);
     }
 
+    // 주문 상태 변경
+    @Transactional
+    public OrderResponse updateOrderStatus(Long id, OrderStatus newStatus) {
+        CoffeeOrder order = orderRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 주문입니다. ID: " + id));
+
+        order.updateStatus(newStatus);
+        return OrderResponse.from(order);
+    }
+
+    // 특정 배송 예정일 (deliveryDate) 기준 주문 목록 조회
+    public List<OrderResponse> getDeliveryOrdersByDate(LocalDate targetDate) {
+        LocalDateTime deliveryDateTime = targetDate.atStartOfDay();
+        return orderRepository.findAllByDeliveryDateOrderByOrderDateAsc(deliveryDateTime)
+                .stream()
+                .map(OrderResponse::from)
+                .toList();
+    }
+
+
     // [주문 취소]
     @Transactional
     public void cancelOrder(Long id) {
@@ -126,7 +147,7 @@ public class OrderService {
 
     // [주문 배송지 수정]
     @Transactional
-    public void updateOrder(Long id, OrderUpdateRequest request) {
+    public void updateOrder(Long id, OrderAddressUpdateRequest request) {
         CoffeeOrder order = orderRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 주문입니다. ID: " + id));
 

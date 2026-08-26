@@ -21,8 +21,9 @@ public class AdminProductService {
 
     // 상품 등록
     @Transactional
-    public AdminProductResponse createProduct(ProductCreateRequest request) {
-
+    public AdminProductResponse createProduct(
+            ProductCreateRequest request
+    ) {
         Product product = new Product(
                 request.name(),
                 request.price(),
@@ -35,13 +36,21 @@ public class AdminProductService {
         return AdminProductResponse.from(savedProduct);
     }
 
+    // 상품 단건 조회
+    @Transactional(readOnly = true)
+    public AdminProductResponse getProduct(Long id) {
+        Product product = productRepository.findById(id)
+                .orElseThrow(() -> new ProductNotFoundException(id));
+
+        return AdminProductResponse.from(product);
+    }
+
     // 상품 수정
     @Transactional
     public AdminProductResponse updateProduct(
             Long id,
             ProductUpdateRequest request
     ) {
-
         Product product = productRepository.findById(id)
                 .orElseThrow(() -> new ProductNotFoundException(id));
 
@@ -58,7 +67,6 @@ public class AdminProductService {
     // 상품 삭제 (Soft Delete)
     @Transactional
     public void deleteProduct(Long id) {
-
         Product product = productRepository.findById(id)
                 .orElseThrow(() -> new ProductNotFoundException(id));
 
@@ -66,8 +74,10 @@ public class AdminProductService {
     }
 
     // 전체 상품 조회
+    @Transactional(readOnly = true)
     public Page<Product> getProducts(int page) {
         Pageable pageable = PageRequest.of(page, 10);
+
         return productRepository.findAll(pageable);
     }
 }

@@ -1,9 +1,9 @@
 package com.back.nbe141team5.product.admin.controller;
 
+import com.back.nbe141team5.product.admin.service.AdminProductService;
 import com.back.nbe141team5.product.dto.AdminProductResponse;
 import com.back.nbe141team5.product.dto.ProductCreateRequest;
 import com.back.nbe141team5.product.dto.ProductUpdateRequest;
-import com.back.nbe141team5.product.admin.service.AdminProductService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -26,6 +26,15 @@ public class AdminProductController {
         return adminProductService.createProduct(request);
     }
 
+    // 상품 단건 조회
+    @GetMapping("/{id}")
+    @ResponseStatus(HttpStatus.OK)
+    public AdminProductResponse getProduct(
+            @PathVariable Long id
+    ) {
+        return adminProductService.getProduct(id);
+    }
+
     // 상품 수정
     @PutMapping("/{id}")
     public AdminProductResponse updateProduct(
@@ -38,14 +47,18 @@ public class AdminProductController {
     // 상품 삭제
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void deleteProduct(@PathVariable Long id) {
+    public void deleteProduct(
+            @PathVariable Long id
+    ) {
         adminProductService.deleteProduct(id);
     }
 
-    /// 상품 조회
+    // 상품 목록 조회
     @GetMapping
     @ResponseStatus(HttpStatus.OK)
-    public Page<AdminProductResponse> getProducts(@RequestParam(defaultValue = "0") int page) {
+    public Page<AdminProductResponse> getProducts(
+            @RequestParam(defaultValue = "0") int page
+    ) {
         return adminProductService.getProducts(page)
                 .map(AdminProductResponse::from);
     }

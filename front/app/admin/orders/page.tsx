@@ -125,9 +125,6 @@ export default function AdminOrdersPage() {
           주문 관리
         </h1>
 
-        <p className="mt-2 text-sm text-neutral-500">
-          접수된 주문을 조회하고 주문 상세 정보를 확인할 수 있습니다.
-        </p>
       </div>
 
       {/* 주문 현황 */}

@@ -85,4 +85,30 @@ public class CoffeeOrder extends BaseEntity {
         return Objects.equals(this.address, address)
                 && Objects.equals(this.postcode, postcode);
     }
+
+    // 주문 상태 변경 및 유효성 검증
+    public void updateStatus(OrderStatus newStatus) {
+        if (newStatus == null) {
+            throw new IllegalArgumentException("변경할 주문 상태는 필수입니다.");
+        }
+
+        if (!canChangeTo(newStatus)) {
+            throw new IllegalStateException(
+                    String.format("주문 상태를 %s에서 %s로 변경할 수 없습니다.", this.status, newStatus));
+        }
+
+        this.status = newStatus;
+    }
+
+    private boolean canChangeTo(OrderStatus newStatus) {
+        if (this.status == newStatus) {
+            return true;
+        }
+
+        return switch (this.status) {
+            case ORDERED -> newStatus == OrderStatus.SHIPPED;
+            case SHIPPED -> newStatus == OrderStatus.DELIVERED;
+            case DELIVERED -> false;
+        };
+    }
 }

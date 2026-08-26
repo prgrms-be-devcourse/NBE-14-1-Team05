@@ -108,7 +108,7 @@ public class CoffeeOrder extends BaseEntity {
         return switch (this.status) {
             case ORDERED -> newStatus == OrderStatus.SHIPPED;
             case SHIPPED -> newStatus == OrderStatus.DELIVERED;
-            case DELIVERED -> false;
+            case DELIVERED, CANCELLED -> false;
         };
     }
     // 주문 취소 (상태 변경)

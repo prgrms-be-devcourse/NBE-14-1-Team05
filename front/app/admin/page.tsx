@@ -21,7 +21,7 @@ export default function AdminPage() {
 
         const products = await productResponse.json();
 
-        setProductCount(products.length);
+        setProductCount(products.totalElements);
 
         // 주문 개수 조회
         const orderResponse = await fetch(

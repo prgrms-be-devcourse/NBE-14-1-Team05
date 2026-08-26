@@ -18,14 +18,15 @@ public class ProductService {
     private final ProductRepository productRepository;
 
     // 전체 상품 조회
-    public Page<Product> getProductList(int page) {
-        Pageable pageable = PageRequest.of(page, 6);
-        return productRepository.findAll(pageable);
-    }
+// 전체 상품 조회
+public Page<Product> getProductList(int page) {
+    Pageable pageable = PageRequest.of(page, 6);
+    return productRepository.findAllByIsActiveTrue(pageable);
+}
 
     // 상품 상세 조회
     public Product getProductDetail(Long id) {
-        return productRepository.findById(id)
+        return productRepository.findByIdAndIsActiveTrue(id)
                 .orElseThrow(() -> new ProductNotFoundException(id));
     }
 }

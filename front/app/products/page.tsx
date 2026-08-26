@@ -73,7 +73,7 @@ export default function Home() {
         </span>
 
         <div className="flex items-center gap-5">
-          {/* TODO: 로그인/권한 기능 구현 후 ADMIN 사용자에게만 노출 */}
+          {/* 관리자 인증 페이지로 이동 */}
           <Link
             href="/admin"
             className="text-sm text-neutral-700 transition hover:text-black"

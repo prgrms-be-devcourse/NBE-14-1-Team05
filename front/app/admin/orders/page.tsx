@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+
 import {
   ORDER_STATUS_LABEL,
   type Order,
@@ -27,9 +28,30 @@ function statusLabel(status: OrderStatus) {
   return ORDER_STATUS_LABEL[status] ?? status;
 }
 
+// 주문 상태별 배지 스타일
+function statusBadge(status: OrderStatus) {
+  const base =
+    "inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold";
+
+  switch (status) {
+    case "ORDERED":
+      return `${base} bg-[#F5EEE7] text-[#8A684A]`;
+
+    case "SHIPPED":
+      return `${base} bg-blue-50 text-blue-600`;
+
+    case "DELIVERED":
+      return `${base} bg-emerald-50 text-emerald-600`;
+
+    default:
+      return `${base} bg-neutral-100 text-neutral-600`;
+  }
+}
+
 export default function AdminOrdersPage() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
+
   const [error, setError] = useState("");
   const [detailError, setDetailError] = useState("");
   const [detailLoading, setDetailLoading] = useState(false);
@@ -66,9 +88,11 @@ export default function AdminOrdersPage() {
       }
 
       const data: Order = await response.json();
+
       setSelectedOrder(data);
     } catch (error) {
       console.error("주문 상세 조회 실패:", error);
+
       setDetailError("주문 상세를 불러오지 못했습니다.");
       setSelectedOrder(null);
     } finally {
@@ -76,205 +100,460 @@ export default function AdminOrdersPage() {
     }
   };
 
-  return (
-      <div>
-        {/* 페이지 상단 */}
-        <div className="flex items-center justify-between mb-8">
-        <div>
-          <h1 className="text-3xl font-semibold">
-            주문 관리
-          </h1>
+  // 상태별 주문 개수
+  const orderedCount = orders.filter(
+    (order) => order.status === "ORDERED"
+  ).length;
 
-          <p className="text-neutral-500 mt-2">
-            접수된 주문을 조회하고 주문 상세 정보를 확인할 수 있습니다.
-          </p>
-        </div>
+  const shippedCount = orders.filter(
+    (order) => order.status === "SHIPPED"
+  ).length;
+
+  const deliveredCount = orders.filter(
+    (order) => order.status === "DELIVERED"
+  ).length;
+
+  return (
+    <div className="space-y-7">
+      {/* 페이지 상단 */}
+      <div>
+        <p className="mb-2 text-sm font-medium text-[#9A7655]">
+          ORDERS
+        </p>
+
+        <h1 className="text-3xl font-bold tracking-tight text-neutral-900">
+          주문 관리
+        </h1>
+
+        <p className="mt-2 text-sm text-neutral-500">
+          접수된 주문을 조회하고 주문 상세 정보를 확인할 수 있습니다.
+        </p>
       </div>
+
+      {/* 주문 현황 */}
+      <section className="grid grid-cols-1 gap-4 md:grid-cols-4">
+        {/* 전체 주문 */}
+        <div className="rounded-2xl border border-neutral-200 bg-white p-5 shadow-sm">
+          <div className="flex items-start justify-between">
+            <div>
+              <p className="text-sm font-medium text-neutral-500">
+                전체 주문
+              </p>
+
+              <p className="mt-3 text-2xl font-bold text-neutral-900">
+                {orders.length}
+
+                <span className="ml-1 text-sm font-medium text-neutral-400">
+                  건
+                </span>
+              </p>
+            </div>
+
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-neutral-100 text-neutral-600">
+              ▤
+            </div>
+          </div>
+        </div>
+
+        {/* 주문 완료 */}
+        <div className="rounded-2xl border border-neutral-200 bg-white p-5 shadow-sm">
+          <div className="flex items-start justify-between">
+            <div>
+              <p className="text-sm font-medium text-neutral-500">
+                주문 완료
+              </p>
+
+              <p className="mt-3 text-2xl font-bold text-neutral-900">
+                {orderedCount}
+
+                <span className="ml-1 text-sm font-medium text-neutral-400">
+                  건
+                </span>
+              </p>
+            </div>
+
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#F5EEE7] text-[#8A684A]">
+              ✓
+            </div>
+          </div>
+        </div>
+
+        {/* 배송 중 */}
+        <div className="rounded-2xl border border-neutral-200 bg-white p-5 shadow-sm">
+          <div className="flex items-start justify-between">
+            <div>
+              <p className="text-sm font-medium text-neutral-500">
+                배송 중
+              </p>
+
+              <p className="mt-3 text-2xl font-bold text-neutral-900">
+                {shippedCount}
+
+                <span className="ml-1 text-sm font-medium text-neutral-400">
+                  건
+                </span>
+              </p>
+            </div>
+
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-50 text-blue-600">
+              →
+            </div>
+          </div>
+        </div>
+
+        {/* 배송 완료 */}
+        <div className="rounded-2xl border border-neutral-200 bg-white p-5 shadow-sm">
+          <div className="flex items-start justify-between">
+            <div>
+              <p className="text-sm font-medium text-neutral-500">
+                배송 완료
+              </p>
+
+              <p className="mt-3 text-2xl font-bold text-neutral-900">
+                {deliveredCount}
+
+                <span className="ml-1 text-sm font-medium text-neutral-400">
+                  건
+                </span>
+              </p>
+            </div>
+
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600">
+              ✓
+            </div>
+          </div>
+        </div>
+      </section>
 
       {/* 에러 메시지 */}
       {error && (
-        <div className="mb-6 rounded border border-red-200 bg-red-50 p-4 text-red-600">
+        <div className="rounded-xl border border-red-200 bg-red-50 px-5 py-4 text-sm font-medium text-red-600">
           {error}
         </div>
       )}
 
       {/* 주문 목록 */}
-      <div className="bg-white border border-neutral-200 rounded-lg overflow-hidden">
-        <table className="w-full">
-          <thead className="bg-neutral-50">
-            <tr className="text-left text-sm text-neutral-500">
-              <th className="p-4">번호</th>
-              <th className="p-4">이메일</th>
-              <th className="p-4">주문일시</th>
-              <th className="p-4">상태</th>
-              <th className="p-4">결제금액</th>
-              <th className="p-4">관리</th>
-            </tr>
-          </thead>
+      <section className="overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-sm">
+        <div className="flex items-center justify-between border-b border-neutral-100 px-6 py-5">
+          <div>
+            <h2 className="font-semibold text-neutral-900">
+              주문 목록
+            </h2>
 
-          <tbody>
-            {orders.map((order, index) => (
-              <tr
-                key={order.id}
-                className={`border-t border-neutral-200 ${
-                  selectedOrder?.id === order.id ? "bg-neutral-50" : ""
-                }`}
-              >
-                <td className="p-4">
-                  {index + 1}
-                </td>
+            <p className="mt-1 text-sm text-neutral-400">
+              총 {orders.length}건의 주문
+            </p>
+          </div>
+        </div>
 
-                <td className="p-4">
-                  {order.email}
-                </td>
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead>
+              <tr className="bg-[#FAFAF9] text-left text-xs font-semibold text-neutral-500">
+                <th className="w-20 px-6 py-4">
+                  번호
+                </th>
 
-                <td className="p-4 text-neutral-600">
-                  {formatDateTime(order.orderDate)}
-                </td>
+                <th className="px-6 py-4">
+                  주문자
+                </th>
 
-                <td className="p-4">
-                  {statusLabel(order.status)}
-                </td>
+                <th className="px-6 py-4">
+                  주문일시
+                </th>
 
-                <td className="p-4">
-                  {order.totalPrice.toLocaleString()}원
-                </td>
+                <th className="w-32 px-6 py-4">
+                  상태
+                </th>
 
-                <td className="p-4">
-                  <button
-                    type="button"
-                    onClick={() => handleSelectOrder(order.id)}
-                    className="hover:underline cursor-pointer"
-                  >
-                    상세
-                  </button>
-                </td>
+                <th className="w-40 px-6 py-4">
+                  결제금액
+                </th>
+
+                <th className="w-28 px-6 py-4 text-center">
+                  관리
+                </th>
               </tr>
-            ))}
+            </thead>
 
-            {orders.length === 0 && !error && (
-              <tr>
-                <td
-                  colSpan={6}
-                  className="p-10 text-center text-neutral-400"
+            <tbody>
+              {orders.map((order, index) => (
+                <tr
+                  key={order.id}
+                  className={`border-t border-neutral-100 transition ${
+                    selectedOrder?.id === order.id
+                      ? "bg-[#FAF7F3]"
+                      : "hover:bg-[#FCFBF9]"
+                  }`}
                 >
-                  접수된 주문이 없습니다.
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
-      </div>
+                  <td className="px-6 py-5 text-sm text-neutral-400">
+                    {index + 1}
+                  </td>
+
+                  <td className="px-6 py-5">
+                    <div>
+                      <p className="text-sm font-semibold text-neutral-900">
+                        {order.email}
+                      </p>
+
+                      <p className="mt-1 text-xs text-neutral-400">
+                        주문 #{order.id}
+                      </p>
+                    </div>
+                  </td>
+
+                  <td className="px-6 py-5 text-sm text-neutral-500">
+                    {formatDateTime(order.orderDate)}
+                  </td>
+
+                  <td className="px-6 py-5">
+                    <span className={statusBadge(order.status)}>
+                      {statusLabel(order.status)}
+                    </span>
+                  </td>
+
+                  <td className="px-6 py-5 text-sm font-semibold text-neutral-800">
+                    {order.totalPrice.toLocaleString("ko-KR")}원
+                  </td>
+
+                  <td className="px-6 py-5 text-center">
+                    <button
+                      type="button"
+                      onClick={() => handleSelectOrder(order.id)}
+                      className="cursor-pointer rounded-lg border border-neutral-200 bg-white px-3 py-2 text-xs font-medium text-neutral-700 transition hover:border-neutral-300 hover:bg-neutral-50"
+                    >
+                      상세보기
+                    </button>
+                  </td>
+                </tr>
+              ))}
+
+              {orders.length === 0 && !error && (
+                <tr>
+                  <td
+                    colSpan={6}
+                    className="px-6 py-16 text-center"
+                  >
+                    <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-xl bg-neutral-100 text-neutral-300">
+                      ▤
+                    </div>
+
+                    <p className="mt-4 text-sm font-medium text-neutral-500">
+                      접수된 주문이 없습니다.
+                    </p>
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      </section>
 
       {/* 주문 상세 */}
       {(detailLoading || detailError || selectedOrder) && (
-        <div className="mt-8 bg-white border border-neutral-200 rounded-lg overflow-hidden">
-          <div className="bg-neutral-50 p-4 text-sm text-neutral-500">
-            주문 상세
+        <section className="overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-sm">
+          {/* 상세 상단 */}
+          <div className="flex items-center justify-between border-b border-neutral-100 px-6 py-5">
+            <div>
+              <p className="text-xs font-medium text-[#9A7655]">
+                ORDER DETAIL
+              </p>
+
+              <h2 className="mt-1 text-lg font-semibold text-neutral-900">
+                주문 상세
+              </h2>
+            </div>
+
+            {selectedOrder && (
+              <button
+                type="button"
+                onClick={() => setSelectedOrder(null)}
+                className="cursor-pointer rounded-lg px-3 py-2 text-sm text-neutral-400 transition hover:bg-neutral-100 hover:text-neutral-700"
+              >
+                닫기 ×
+              </button>
+            )}
           </div>
 
+          {/* 상세 로딩 */}
           {detailLoading && (
-            <p className="p-6 text-neutral-400">
+            <div className="px-6 py-12 text-center text-sm text-neutral-400">
               주문 상세를 불러오는 중입니다.
-            </p>
+            </div>
           )}
 
+          {/* 상세 에러 */}
           {detailError && (
-            <div className="m-4 rounded border border-red-200 bg-red-50 p-4 text-red-600">
+            <div className="m-6 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-600">
               {detailError}
             </div>
           )}
 
           {!detailLoading && selectedOrder && (
-            <div className="p-6 space-y-6">
-              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                <p>
-                  <span className="text-neutral-500">주문번호</span>
-                  <span className="ml-3">{selectedOrder.id}</span>
-                </p>
+            <div className="space-y-8 p-6">
+              {/* 주문 정보 */}
+              <div>
+                <h3 className="mb-4 text-sm font-semibold text-neutral-900">
+                  주문 정보
+                </h3>
 
-                <p>
-                  <span className="text-neutral-500">상태</span>
-                  <span className="ml-3">
-                    {statusLabel(selectedOrder.status)}
-                  </span>
-                </p>
+                <div className="grid grid-cols-1 gap-4 rounded-xl bg-[#FAFAF9] p-5 md:grid-cols-4">
+                  <div>
+                    <p className="text-xs text-neutral-400">
+                      주문번호
+                    </p>
 
-                <p>
-                  <span className="text-neutral-500">이메일</span>
-                  <span className="ml-3">{selectedOrder.email}</span>
-                </p>
+                    <p className="mt-2 text-sm font-semibold text-neutral-900">
+                      #{selectedOrder.id}
+                    </p>
+                  </div>
 
-                <p>
-                  <span className="text-neutral-500">주문일시</span>
-                  <span className="ml-3">
-                    {formatDateTime(selectedOrder.orderDate)}
-                  </span>
-                </p>
+                  <div>
+                    <p className="text-xs text-neutral-400">
+                      주문 상태
+                    </p>
 
-                <p>
-                  <span className="text-neutral-500">주소</span>
-                  <span className="ml-3">{selectedOrder.address}</span>
-                </p>
+                    <div className="mt-2">
+                      <span
+                        className={statusBadge(selectedOrder.status)}
+                      >
+                        {statusLabel(selectedOrder.status)}
+                      </span>
+                    </div>
+                  </div>
 
-                <p>
-                  <span className="text-neutral-500">우편번호</span>
-                  <span className="ml-3">{selectedOrder.postcode}</span>
-                </p>
+                  <div>
+                    <p className="text-xs text-neutral-400">
+                      주문일시
+                    </p>
 
-                <p>
-                  <span className="text-neutral-500">배송일</span>
-                  <span className="ml-3">
-                    {formatDateTime(selectedOrder.deliveryDate)}
-                  </span>
-                </p>
+                    <p className="mt-2 text-sm font-medium text-neutral-700">
+                      {formatDateTime(selectedOrder.orderDate)}
+                    </p>
+                  </div>
 
-                <p>
-                  <span className="text-neutral-500">결제금액</span>
-                  <span className="ml-3">
-                    {selectedOrder.totalPrice.toLocaleString()}원
-                  </span>
-                </p>
+                  <div>
+                    <p className="text-xs text-neutral-400">
+                      결제금액
+                    </p>
+
+                    <p className="mt-2 text-sm font-bold text-neutral-900">
+                      {selectedOrder.totalPrice.toLocaleString("ko-KR")}원
+                    </p>
+                  </div>
+                </div>
               </div>
 
-              <table className="w-full">
-                <thead className="bg-neutral-50">
-                  <tr className="text-left text-sm text-neutral-500">
-                    <th className="p-4">상품명</th>
-                    <th className="p-4">상품 ID</th>
-                    <th className="p-4">수량</th>
-                  </tr>
-                </thead>
+              {/* 배송 정보 */}
+              <div>
+                <h3 className="mb-4 text-sm font-semibold text-neutral-900">
+                  배송 정보
+                </h3>
 
-                <tbody>
-                  {selectedOrder.orderItems.map((item) => (
-                    <tr
-                      key={item.id}
-                      className="border-t border-neutral-200"
-                    >
-                      <td className="p-4">{item.productName}</td>
-                      <td className="p-4 text-neutral-600">
-                        {item.productId ?? "-"}
-                      </td>
-                      <td className="p-4">{item.quantity}</td>
-                    </tr>
-                  ))}
+                <div className="grid grid-cols-1 gap-x-10 gap-y-5 rounded-xl border border-neutral-100 p-5 md:grid-cols-2">
+                  <div>
+                    <p className="text-xs text-neutral-400">
+                      이메일
+                    </p>
 
-                  {selectedOrder.orderItems.length === 0 && (
-                    <tr>
-                      <td
-                        colSpan={3}
-                        className="p-10 text-center text-neutral-400"
-                      >
-                        주문 상품이 없습니다.
-                      </td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
+                    <p className="mt-1.5 text-sm font-medium text-neutral-700">
+                      {selectedOrder.email}
+                    </p>
+                  </div>
+
+                  <div>
+                    <p className="text-xs text-neutral-400">
+                      우편번호
+                    </p>
+
+                    <p className="mt-1.5 text-sm font-medium text-neutral-700">
+                      {selectedOrder.postcode}
+                    </p>
+                  </div>
+
+                  <div>
+                    <p className="text-xs text-neutral-400">
+                      주소
+                    </p>
+
+                    <p className="mt-1.5 text-sm font-medium text-neutral-700">
+                      {selectedOrder.address}
+                    </p>
+                  </div>
+
+                  <div>
+                    <p className="text-xs text-neutral-400">
+                      배송일
+                    </p>
+
+                    <p className="mt-1.5 text-sm font-medium text-neutral-700">
+                      {formatDateTime(selectedOrder.deliveryDate)}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* 주문 상품 */}
+              <div>
+                <h3 className="mb-4 text-sm font-semibold text-neutral-900">
+                  주문 상품
+                </h3>
+
+                <div className="overflow-hidden rounded-xl border border-neutral-100">
+                  <table className="w-full">
+                    <thead>
+                      <tr className="bg-[#FAFAF9] text-left text-xs font-semibold text-neutral-500">
+                        <th className="px-5 py-4">
+                          상품명
+                        </th>
+
+                        <th className="px-5 py-4">
+                          상품 ID
+                        </th>
+
+                        <th className="px-5 py-4">
+                          수량
+                        </th>
+                      </tr>
+                    </thead>
+
+                    <tbody>
+                      {selectedOrder.orderItems.map((item) => (
+                        <tr
+                          key={item.id}
+                          className="border-t border-neutral-100"
+                        >
+                          <td className="px-5 py-4 text-sm font-medium text-neutral-900">
+                            {item.productName}
+                          </td>
+
+                          <td className="px-5 py-4 text-sm text-neutral-500">
+                            {item.productId ?? "-"}
+                          </td>
+
+                          <td className="px-5 py-4 text-sm text-neutral-700">
+                            {item.quantity}개
+                          </td>
+                        </tr>
+                      ))}
+
+                      {selectedOrder.orderItems.length === 0 && (
+                        <tr>
+                          <td
+                            colSpan={3}
+                            className="px-5 py-10 text-center text-sm text-neutral-400"
+                          >
+                            주문 상품이 없습니다.
+                          </td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
             </div>
           )}
-        </div>
+        </section>
       )}
     </div>
   );

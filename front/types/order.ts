@@ -1,4 +1,4 @@
-export type OrderStatus = "ORDERED" | "SHIPPED" | "DELIVERED";
+export type OrderStatus = "ORDERED" | "SHIPPED" | "DELIVERED" | "CANCELLED";
 
 export type OrderItem = {
   id: number;
@@ -23,4 +23,5 @@ export const ORDER_STATUS_LABEL: Record<OrderStatus, string> = {
   ORDERED: "주문 완료",
   SHIPPED: "배송 중",
   DELIVERED: "배송 완료",
+  CANCELLED: "주문 취소",
 };

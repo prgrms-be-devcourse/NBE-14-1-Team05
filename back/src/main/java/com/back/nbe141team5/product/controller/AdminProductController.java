@@ -6,6 +6,7 @@ import com.back.nbe141team5.product.dto.ProductUpdateRequest;
 import com.back.nbe141team5.product.service.AdminProductService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
@@ -39,5 +40,13 @@ public class AdminProductController {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteProduct(@PathVariable Long id) {
         adminProductService.deleteProduct(id);
+    }
+
+    /// 상품 조회
+    @GetMapping
+    @ResponseStatus(HttpStatus.OK)
+    public Page<AdminProductResponse> getProducts(@RequestParam(defaultValue = "0") int page) {
+        return adminProductService.getProducts(page)
+                .map(AdminProductResponse::from);
     }
 }

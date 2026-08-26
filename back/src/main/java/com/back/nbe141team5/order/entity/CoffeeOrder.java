@@ -85,4 +85,14 @@ public class CoffeeOrder extends BaseEntity {
         return Objects.equals(this.address, address)
                 && Objects.equals(this.postcode, postcode);
     }
+    // 주문 취소 (상태 변경)
+    public void cancel() {
+        this.status = OrderStatus.CANCELLED;
+    }
+
+    // 배송지 및 우편번호 수정
+    public void updateDeliveryInfo(String address, String postcode) {
+        this.address = address;
+        this.postcode = postcode;
+    }
 }

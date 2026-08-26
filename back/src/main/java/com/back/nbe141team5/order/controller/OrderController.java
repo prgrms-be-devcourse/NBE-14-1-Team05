@@ -1,10 +1,10 @@
 package com.back.nbe141team5.order.controller;
 
-import com.back.nbe141team5.order.dto.OrderRequest;
+import com.back.nbe141team5.order.dto.OrderCreateRequest;
 import com.back.nbe141team5.order.dto.OrderResponse;
+import com.back.nbe141team5.order.dto.OrderUpdateRequest;
 import com.back.nbe141team5.order.service.OrderService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -19,7 +19,7 @@ public class OrderController {
 
     // 주문 생성
     @PostMapping
-    public ResponseEntity<Long> createOrder(@RequestBody OrderRequest request) {
+    public ResponseEntity<Long> createOrder(@RequestBody OrderCreateRequest request) {
         Long orderId = orderService.createOrder(request);
         return ResponseEntity.ok(orderId);
 
@@ -39,4 +39,20 @@ public class OrderController {
         return ResponseEntity.ok(response);
     }
 
+    // 주문 배송 정보 수정
+    @PatchMapping("/{id}")
+    public ResponseEntity<Void> updateOrder(
+            @PathVariable Long id,
+            @RequestBody OrderUpdateRequest request
+    ) {
+        orderService.updateOrder(id, request);
+        return ResponseEntity.ok().build();
+    }
+
+    // 주문 취소
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> cancelOrder(@PathVariable Long id) {
+        orderService.cancelOrder(id);
+        return ResponseEntity.noContent().build();
+    }
 }

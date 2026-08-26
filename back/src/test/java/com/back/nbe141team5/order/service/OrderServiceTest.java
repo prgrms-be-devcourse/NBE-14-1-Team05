@@ -1,12 +1,8 @@
 package com.back.nbe141team5.order.service;
 
-import com.back.nbe141team5.order.dto.OrderItemRequest;
-<<<<<<< HEAD
 import com.back.nbe141team5.order.dto.OrderCreateRequest;
-=======
-import com.back.nbe141team5.order.dto.OrderRequest;
+import com.back.nbe141team5.order.dto.OrderItemRequest;
 import com.back.nbe141team5.order.dto.OrderResponse;
->>>>>>> origin/main
 import com.back.nbe141team5.order.entity.CoffeeOrder;
 import com.back.nbe141team5.order.entity.OrderItem;
 import com.back.nbe141team5.order.entity.OrderStatus;

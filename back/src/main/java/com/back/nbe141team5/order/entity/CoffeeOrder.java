@@ -100,20 +100,24 @@ public class CoffeeOrder extends BaseEntity {
         this.status = newStatus;
     }
 
+    // 1. 상태 전이 가능 여부 검증
     private boolean canChangeTo(OrderStatus newStatus) {
         if (this.status == newStatus) {
             return true;
         }
-
         return switch (this.status) {
-            case ORDERED -> newStatus == OrderStatus.SHIPPED;
-            case SHIPPED -> newStatus == OrderStatus.DELIVERED;
+            // ORDERED 상태일 때: 배송중(SHIPPED) 뿐만 아니라 주문취소(CANCELLED)도 가능하도록 추가
+            case ORDERED -> newStatus == OrderStatus.SHIPPED || newStatus == OrderStatus.CANCELLED;
+            // SHIPPED 상태일 때: 배송완료(DELIVERED) 뿐만 아니라 주문취소(CANCELLED)도 가능하도록 추가
+            case SHIPPED -> newStatus == OrderStatus.DELIVERED || newStatus == OrderStatus.CANCELLED;
+            // 이미 배송완료(DELIVERED)되었거나 취소(CANCELLED)된 주문은 더 이상 변경 불가
             case DELIVERED, CANCELLED -> false;
         };
     }
-    // 주문 취소 (상태 변경)
+
+    // 2. 주문 취소 메서드 (안전하게 updateStatus를 호출하도록 수정)
     public void cancel() {
-        this.status = OrderStatus.CANCELLED;
+        this.updateStatus(OrderStatus.CANCELLED);
     }
 
     // 배송지 및 우편번호 수정

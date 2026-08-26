@@ -1,6 +1,7 @@
 package com.back.nbe141team5.order.entity;
 
 import com.back.nbe141team5.global.BaseEntity;
+import com.back.nbe141team5.product.entity.Product;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -8,6 +9,7 @@ import lombok.NoArgsConstructor;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 @Entity
 @Getter
@@ -46,11 +48,41 @@ public class CoffeeOrder extends BaseEntity {
         this.status = status;
     }
 
+    // deliveryDate 를 포함하는 생성자 추가
+    public CoffeeOrder(String email, String address, String postcode, Integer totalPrice, LocalDateTime orderDate, OrderStatus status, LocalDateTime deliveryDate) {
+        this.email = email;
+        this.address = address;
+        this.postcode = postcode;
+        this.totalPrice = totalPrice;
+        this.orderDate = orderDate;
+        this.status = status;
+        this.deliveryDate = deliveryDate;
+    }
+
     public void addOrderItem(OrderItem orderItem) {
         this.orderItems.add(orderItem);
         orderItem.setCoffeeOrder(this);
     }
+
     public void updateTotalPrice(Integer totalPrice) {
         this.totalPrice = totalPrice;
+    }
+
+    public void addOrUpdateOrderItem(Product product, Integer quantity) {
+        this.orderItems.stream()
+                .filter(item -> item.getProduct().getId().equals(product.getId()))
+                .findFirst()
+                .ifPresentOrElse(
+                        // 1. 이미 존재하면 수량 누적
+                        item -> item.addQuantity(quantity),
+                        // 2. 없으면 새로 생성해서 추가
+                        () -> this.addOrderItem(new OrderItem(product, quantity))
+                );
+
+    }
+
+    public boolean isSameAddress(String address, String postcode) {
+        return Objects.equals(this.address, address)
+                && Objects.equals(this.postcode, postcode);
     }
 }

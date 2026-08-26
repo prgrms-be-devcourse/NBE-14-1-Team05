@@ -11,13 +11,22 @@ type Product = {
   imageUrl: string | null;
 };
 
+type ProductPage = {
+  content: Product[];
+  totalPages: number;
+  number: number;
+};
+
 export default function AdminProductsPage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [error, setError] = useState("");
+  const [page, setPage] = useState(0);
+  const [totalPages, setTotalPages] = useState(0);
 
   // 상품 목록 조회
   useEffect(() => {
-    fetch("/api/admin/products")
+    fetch(`/api/admin/products?page=${page}`)
+
       .then((response) => {
         if (!response.ok) {
           throw new Error("상품 목록을 불러오지 못했습니다.");
@@ -25,14 +34,18 @@ export default function AdminProductsPage() {
 
         return response.json();
       })
-      .then((data: Product[]) => {
-        setProducts(data);
+
+      .then((data: ProductPage) => {
+        setProducts(data.content);
+        setTotalPages(data.totalPages);
       })
+
       .catch((error) => {
         console.error("상품 조회 실패:", error);
         setError("상품 목록을 불러오지 못했습니다.");
       });
-  }, []);
+
+  }, [page]);
 
   // 상품 삭제
   const handleDelete = async (id: number) => {
@@ -169,6 +182,31 @@ export default function AdminProductsPage() {
             )}
           </tbody>
         </table>
+      </div>
+      {/* 페이징 */}
+      <div className="flex justify-center gap-2 mt-6">
+        <button
+          onClick={() => setPage(page - 1)}
+          disabled={page === 0}
+        >
+          이전
+        </button>
+
+        {Array.from({ length: totalPages }, (_, index) => (
+          <button
+            key={index}
+            onClick={() => setPage(index)}
+          >
+            {index + 1}
+          </button>
+        ))}
+
+        <button
+          onClick={() => setPage(page + 1)}
+          disabled={page === totalPages - 1}
+        >
+          다음
+        </button>
       </div>
     </div>
   );

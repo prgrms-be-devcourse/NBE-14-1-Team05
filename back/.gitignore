@@ -39,3 +39,15 @@ out/
 ### Mac ###
 .DS_Store
 **/.DS_Store
+
+### Env ###
+.env
+*.env
+application-secret.yml
+application-secret.properties
+
+### DB ###
+*.db
+*.mv.db
+*.trace.db
+*.lock.db

@@ -1,8 +1,9 @@
 package com.back.nbe141team5.order.controller;
 
-import com.back.nbe141team5.order.dto.OrderRequest;
+import com.back.nbe141team5.order.dto.OrderCreateRequest;
 import com.back.nbe141team5.order.dto.OrderResponse;
 import com.back.nbe141team5.order.dto.OrderStatusUpdateRequest;
+import com.back.nbe141team5.order.dto.OrderAddressUpdateRequest;
 import com.back.nbe141team5.order.service.OrderService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -22,13 +23,12 @@ public class OrderController {
 
     // 주문 생성
     @PostMapping
-    public ResponseEntity<Long> createOrder(@RequestBody OrderRequest request) {
+    public ResponseEntity<Long> createOrder(@RequestBody OrderCreateRequest request) {
         Long orderId = orderService.createOrder(request);
         return ResponseEntity.ok(orderId);
 
 
     }
-
     // 전체 주문 목록 조회
     @GetMapping
     public ResponseEntity<List<OrderResponse>> getAllOrders() {
@@ -43,6 +43,22 @@ public class OrderController {
         return ResponseEntity.ok(response);
     }
 
+    // 주문 배송 정보 수정
+    @PatchMapping("/{id}")
+    public ResponseEntity<Void> updateOrder(
+            @PathVariable Long id,
+            @RequestBody OrderAddressUpdateRequest request
+    ) {
+        orderService.updateOrder(id, request);
+        return ResponseEntity.ok().build();
+    }
+
+    // 주문 취소
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> cancelOrder(@PathVariable Long id) {
+        orderService.cancelOrder(id);
+        return ResponseEntity.noContent().build();
+    }
     // 주문 상태 변경 API
     @PutMapping("/{id}/status")
     public ResponseEntity<OrderResponse> updateOrderStatus(

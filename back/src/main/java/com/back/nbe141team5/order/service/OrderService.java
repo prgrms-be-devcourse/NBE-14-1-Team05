@@ -1,8 +1,9 @@
 package com.back.nbe141team5.order.service;
 
 import com.back.nbe141team5.order.dto.OrderItemRequest;
-import com.back.nbe141team5.order.dto.OrderRequest;
+import com.back.nbe141team5.order.dto.OrderCreateRequest;
 import com.back.nbe141team5.order.dto.OrderResponse;
+import com.back.nbe141team5.order.dto.OrderAddressUpdateRequest;
 import com.back.nbe141team5.order.entity.CoffeeOrder;
 import com.back.nbe141team5.order.entity.OrderItem;
 import com.back.nbe141team5.order.entity.OrderStatus;
@@ -29,7 +30,7 @@ public class OrderService {
 
     // [메인 진입점] 주문 생성 요청 처리
     @Transactional
-    public Long createOrder(OrderRequest request) {
+    public Long createOrder(OrderCreateRequest request) {
         LocalDateTime now = LocalDateTime.now();
 
         return tryMergeWithExistingOrder(request, now)
@@ -37,7 +38,7 @@ public class OrderService {
     }
 
     // 합배송 (주문 병합) 함수
-    private Optional<Long> tryMergeWithExistingOrder(OrderRequest request, LocalDateTime now) {
+    private Optional<Long> tryMergeWithExistingOrder(OrderCreateRequest request, LocalDateTime now) {
         return orderRepository.findTopByEmailAndStatusOrderByOrderDateDesc(request.email(), OrderStatus.ORDERED)
                 .filter(order -> order.isSameAddress(request.address(), request.postcode()))
                 .filter(order -> DeliveryPolicyUtils.isSameDeliveryGroup(order.getOrderDate(), now))
@@ -47,7 +48,7 @@ public class OrderService {
                 });
     }
 
-    private void mergeItemsToOrder(OrderRequest request, CoffeeOrder order) {
+    private void mergeItemsToOrder(OrderCreateRequest request, CoffeeOrder order) {
         // 상품 병합 및 총 금액 갱신
         int additionalPrice = 0;
         for (OrderItemRequest itemRequest : request.orderItems()) {
@@ -61,7 +62,7 @@ public class OrderService {
 
 
     // 기존 신규 주문 생성 로직
-    public Long createNewOrder(OrderRequest request, LocalDateTime orderDate) {
+    public Long createNewOrder(OrderCreateRequest request, LocalDateTime orderDate) {
         // 배송 정책(14시 기준)에 따라 배송 예정일 계산 후 자정(00:00:00) 기준 일시로 변환
         LocalDateTime deliveryDate = DeliveryPolicyUtils.calculateDeliveryDate(orderDate).atStartOfDay();
 
@@ -129,4 +130,32 @@ public class OrderService {
                 .toList();
     }
 
+
+    // [주문 취소]
+    @Transactional
+    public void cancelOrder(Long id) {
+        CoffeeOrder order = orderRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 주문입니다. ID: " + id));
+
+        // 배송 시작 전(ORDERED 상태)일 때만 취소 가능
+        if (order.getStatus() != OrderStatus.ORDERED) {
+            throw new IllegalStateException("주문 접수(ORDERED) 상태일 때만 취소할 수 있습니다.");
+        }
+
+        order.cancel();
+    }
+
+    // [주문 배송지 수정]
+    @Transactional
+    public void updateOrder(Long id, OrderAddressUpdateRequest request) {
+        CoffeeOrder order = orderRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 주문입니다. ID: " + id));
+
+        // 배송 시작 전(ORDERED 상태)일 때만 수정 가능
+        if (order.getStatus() != OrderStatus.ORDERED) {
+            throw new IllegalStateException("주문 접수(ORDERED) 상태일 때만 배송 정보를 수정할 수 있습니다.");
+        }
+
+        order.updateDeliveryInfo(request.address(), request.postcode());
+    }
 }

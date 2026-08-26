@@ -1,8 +1,12 @@
 package com.back.nbe141team5.order.service;
 
 import com.back.nbe141team5.order.dto.OrderItemRequest;
+<<<<<<< HEAD
+import com.back.nbe141team5.order.dto.OrderCreateRequest;
+=======
 import com.back.nbe141team5.order.dto.OrderRequest;
 import com.back.nbe141team5.order.dto.OrderResponse;
+>>>>>>> origin/main
 import com.back.nbe141team5.order.entity.CoffeeOrder;
 import com.back.nbe141team5.order.entity.OrderItem;
 import com.back.nbe141team5.order.entity.OrderStatus;
@@ -44,7 +48,7 @@ class OrderServiceTest {
         String email = "test@example.com";
         String address = "서울시 강남구";
         String postcode = "12345";
-        OrderRequest request = new OrderRequest(
+        OrderCreateRequest request = new OrderCreateRequest(
                 email, address, postcode,
                 List.of(new OrderItemRequest(1L, 2))
         );
@@ -79,7 +83,7 @@ class OrderServiceTest {
                 .willReturn(Optional.of(existingOrder));
         given(productRepository.findById(1L)).willReturn(Optional.of(product));
         // 신규 주문 요청 (동일 상품 3개 추가 주문)
-        OrderRequest request = new OrderRequest(
+        OrderCreateRequest request = new OrderCreateRequest(
                 email, address, postcode,
                 List.of(new OrderItemRequest(1L, 3))
         );
@@ -105,7 +109,7 @@ class OrderServiceTest {
         Product product = createProduct(1L, "콜롬비아 원두", 10000);
         given(productRepository.findById(1L)).willReturn(Optional.of(product));
         // 신규 주문 요청 (부산시 해운대구 - 다른 배송지)
-        OrderRequest request = new OrderRequest(
+        OrderCreateRequest request = new OrderCreateRequest(
                 email, "부산시 해운대구", "54321",
                 List.of(new OrderItemRequest(1L, 1))
         );
@@ -134,7 +138,7 @@ class OrderServiceTest {
                 .willReturn(Optional.of(existingOrder));
         Product product = createProduct(1L, "콜롬비아 원두", 10000);
         given(productRepository.findById(1L)).willReturn(Optional.of(product));
-        OrderRequest request = new OrderRequest(
+        OrderCreateRequest request = new OrderCreateRequest(
                 email, address, postcode,
                 List.of(new OrderItemRequest(1L, 1))
         );

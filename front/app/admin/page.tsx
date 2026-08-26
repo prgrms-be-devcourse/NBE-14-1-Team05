@@ -68,11 +68,13 @@ export default function AdminPage() {
     fetchDashboardData();
   }, []);
 
-  // 오늘 주문
+  // 오늘 배송 대상
   const today = new Date().toDateString();
-
-  const todayOrderCount = orders.filter((order) => {
-    return new Date(order.orderDate).toDateString() === today;
+  const todayDeliveryCount = orders.filter((order) => {
+    return (
+      order.deliveryDate &&
+      new Date(order.deliveryDate).toDateString() === today
+    );
   }).length;
 
   // 최근 주문 5건
@@ -190,17 +192,19 @@ export default function AdminPage() {
           </div>
         </Link>
 
-        {/* 오늘 주문 */}
+        {/* 오늘 배송 대상 */}
         <Link
           href="/admin/orders?filter=TODAY"
           className="group rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm transition duration-200 hover:-translate-y-0.5 hover:shadow-md"
         >
           <div className="flex items-start justify-between">
             <div>
-              <p className="text-sm font-medium text-neutral-500">오늘 주문</p>
+              <p className="text-sm font-medium text-neutral-500">
+                오늘 배송 대상
+              </p>
               <div className="mt-4 flex items-end gap-1">
                 <span className="text-3xl font-bold tracking-tight text-neutral-900">
-                  {loading ? "-" : todayOrderCount}
+                  {loading ? "-" : todayDeliveryCount}
                 </span>
                 {!loading && (
                   <span className="mb-1 text-sm font-medium text-neutral-500">
@@ -214,7 +218,9 @@ export default function AdminPage() {
             </div>
           </div>
           <div className="mt-6 flex items-center justify-between border-t border-neutral-100 pt-4">
-            <span className="text-xs text-neutral-400">오늘 접수된 주문</span>
+            <span className="text-xs text-neutral-400">
+              오늘 배송 대상 주문
+            </span>
             <span className="text-sm text-neutral-400 transition group-hover:translate-x-1">
               →
             </span>

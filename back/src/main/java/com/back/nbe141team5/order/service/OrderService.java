@@ -14,6 +14,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -108,4 +109,24 @@ public class OrderService {
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 주문입니다. ID: " + id)); // OrderNotFoundException 만들면 수정예정
         return OrderResponse.from(order);
     }
+
+    // 주문 상태 변경
+    @Transactional
+    public OrderResponse updateOrderStatus(Long id, OrderStatus newStatus) {
+        CoffeeOrder order = orderRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 주문입니다. ID: " + id));
+
+        order.updateStatus(newStatus);
+        return OrderResponse.from(order);
+    }
+
+    // 특정 배송 예정일 (deliveryDate) 기준 주문 목록 조회
+    public List<OrderResponse> getDeliveryOrdersByDate(LocalDate targetDate) {
+        LocalDateTime deliveryDateTime = targetDate.atStartOfDay();
+        return orderRepository.findAllByDeliveryDateOrderByOrderDateAsc(deliveryDateTime)
+                .stream()
+                .map(OrderResponse::from)
+                .toList();
+    }
+
 }

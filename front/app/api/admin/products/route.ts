@@ -1,8 +1,10 @@
 // 상품 목록 조회
-export async function GET() {
+export async function GET(request: Request) {
     try {
+      const { searchParams } = new URL(request.url);
+      const page = searchParams.get("page") ?? "0";
       const response = await fetch(
-        "http://localhost:8080/api/v1/products",
+        `http://localhost:8080/api/v1/admin/products?page=${page}`,
         {
           cache: "no-store",
         }

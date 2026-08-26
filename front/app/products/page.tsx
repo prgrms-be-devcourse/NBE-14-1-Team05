@@ -18,6 +18,8 @@ export default function Home() {
 
     const [products, setProducts] = useState<Product[]>([]);
     const [cartCount, setCartCount] = useState(0);
+    const [page, setPage] = useState(0);
+    const [totalPages, setTotalPages] = useState(0);
 
     function refreshCount() {
         setCartCount(
@@ -28,13 +30,14 @@ export default function Home() {
     useEffect(() => {
         refreshCount();
 
-        fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/products`)
+        fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/products?page=${page}`)
             .then((response) => response.json())
             .then((data) => {
-                setProducts(data);
+                setProducts(data.content);
+                setTotalPages(data.totalPages);
             });
-
-    }, []);
+        //페이지 만큼 실행
+    }, [page]);
 
     function handleAdd(product: Product) {
 
@@ -141,7 +144,21 @@ export default function Home() {
                     ))}
 
                 </div>
-
+                <div className="flex justify-center gap-2 mt-10 ">
+                    {Array.from({ length: totalPages }, (_, index) => (
+                        <button
+                            key={index}
+                            onClick={() => setPage(index)}
+                            className={
+                                page === index
+                                    ? "px-4 py-2 border border-black bg-black text-white transition transform hover:scale-105"
+                                    : "px-4 py-2 border border-black bg-white text-black hover:bg-neutral-100 transition transform hover:scale-105"
+                            }
+                        >
+                            {index + 1}
+                        </button>
+                    ))}
+                </div>
             </main>
 
         </div>

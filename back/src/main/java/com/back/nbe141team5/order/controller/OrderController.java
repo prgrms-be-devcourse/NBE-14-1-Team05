@@ -2,9 +2,10 @@ package com.back.nbe141team5.order.controller;
 
 import com.back.nbe141team5.order.dto.OrderRequest;
 import com.back.nbe141team5.order.dto.OrderResponse;
+import com.back.nbe141team5.order.dto.OrderStatusUpdateRequest;
 import com.back.nbe141team5.order.service.OrderService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -25,6 +26,7 @@ public class OrderController {
 
 
     }
+
     // 전체 주문 목록 조회
     @GetMapping
     public ResponseEntity<List<OrderResponse>> getAllOrders() {
@@ -39,4 +41,13 @@ public class OrderController {
         return ResponseEntity.ok(response);
     }
 
+    // 주문 상태 변경 API
+    @PutMapping("/{id}/status")
+    public ResponseEntity<OrderResponse> updateOrderStatus(
+            @PathVariable Long id,
+            @Valid @RequestBody OrderStatusUpdateRequest request) {
+        OrderResponse response = orderService.updateOrderStatus(id, request.status());
+
+        return ResponseEntity.ok(response);
+    }
 }

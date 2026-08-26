@@ -108,4 +108,15 @@ public class OrderService {
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 주문입니다. ID: " + id)); // OrderNotFoundException 만들면 수정예정
         return OrderResponse.from(order);
     }
+
+    // 주문 상태 변경
+    @Transactional
+    public OrderResponse updateOrderStatus(Long id, OrderStatus newStatus) {
+        CoffeeOrder order = orderRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 주문입니다. ID: " + id));
+
+        order.updateStatus(newStatus);
+        return OrderResponse.from(order);
+    }
+
 }

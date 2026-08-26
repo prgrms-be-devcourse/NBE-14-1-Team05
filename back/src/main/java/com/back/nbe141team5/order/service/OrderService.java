@@ -30,26 +30,28 @@ public class OrderService {
 
     // [메인 진입점] 주문 생성 요청 처리
     @Transactional
-    public Long createOrder(OrderCreateRequest request) {
+    public OrderResponse createOrder(OrderCreateRequest request) {
         LocalDateTime now = LocalDateTime.now();
 
-        return tryMergeWithExistingOrder(request, now)
+        CoffeeOrder savedOrder = tryMergeWithExistingOrder(request, now)
                 .orElseGet(() -> createNewOrder(request, now));
+
+        return OrderResponse.from(savedOrder);
     }
 
-    // 합배송 (주문 병합) 함수
-    private Optional<Long> tryMergeWithExistingOrder(OrderCreateRequest request, LocalDateTime now) {
+    // 합배송 (주문 병합) 함수 -> CoffeeOrder 객체 반환
+    private Optional<CoffeeOrder> tryMergeWithExistingOrder(OrderCreateRequest request, LocalDateTime now) {
         return orderRepository.findTopByEmailAndStatusOrderByOrderDateDesc(request.email(), OrderStatus.ORDERED)
                 .filter(order -> order.isSameAddress(request.address(), request.postcode()))
                 .filter(order -> DeliveryPolicyUtils.isSameDeliveryGroup(order.getOrderDate(), now))
                 .map(order -> {
                     mergeItemsToOrder(request, order);
-                    return order.getId();
+                    return order;  // 수정 order.getId() -> order 엔티티 자체 반환
                 });
     }
 
+    // 상품 병합 및 총 금액 갱신
     private void mergeItemsToOrder(OrderCreateRequest request, CoffeeOrder order) {
-        // 상품 병합 및 총 금액 갱신
         int additionalPrice = 0;
         for (OrderItemRequest itemRequest : request.orderItems()) {
             Product product = productRepository.findById(itemRequest.productId())
@@ -61,8 +63,8 @@ public class OrderService {
     }
 
 
-    // 기존 신규 주문 생성 로직
-    public Long createNewOrder(OrderCreateRequest request, LocalDateTime orderDate) {
+    // 신규 주문 생성 로직 -> CoffeeOrder 엔티티 생성 및 DB 저장 후 엔티티 반환
+    public CoffeeOrder createNewOrder(OrderCreateRequest request, LocalDateTime orderDate) {
         // 배송 정책(14시 기준)에 따라 배송 예정일 계산 후 자정(00:00:00) 기준 일시로 변환
         LocalDateTime deliveryDate = DeliveryPolicyUtils.calculateDeliveryDate(orderDate).atStartOfDay();
 
@@ -92,9 +94,7 @@ public class OrderService {
 
         // 3. 계산된 총 금액 업데이트 및 DB 저장
         order.updateTotalPrice(totalPrice);
-        CoffeeOrder savedOrder = orderRepository.save(order);
-
-        return savedOrder.getId();
+        return orderRepository.save(order);
     }
 
     // 전체 주문 목록 조회
@@ -133,7 +133,7 @@ public class OrderService {
 
     // [주문 취소]
     @Transactional
-    public void cancelOrder(Long id) {
+    public OrderResponse cancelOrder(Long id) {
         CoffeeOrder order = orderRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 주문입니다. ID: " + id));
 
@@ -143,11 +143,12 @@ public class OrderService {
         }
 
         order.cancel();
+        return OrderResponse.from(order);
     }
 
     // [주문 배송지 수정]
     @Transactional
-    public void updateOrder(Long id, OrderAddressUpdateRequest request) {
+    public OrderResponse updateOrder(Long id, OrderAddressUpdateRequest request) {
         CoffeeOrder order = orderRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 주문입니다. ID: " + id));
 
@@ -157,5 +158,17 @@ public class OrderService {
         }
 
         order.updateDeliveryInfo(request.address(), request.postcode());
+        return OrderResponse.from(order);
+    }
+    // 주문 목록 조회 (이메일 조건부 검색 지원)
+    public List<OrderResponse> getOrders(String email) {
+        if (email != null && !email.isBlank()) {
+            return orderRepository.findAllByEmailOrderByOrderDateDesc(email).stream()
+                    .map(OrderResponse::from)
+                    .toList();
+        }
+        return orderRepository.findAll().stream()
+                .map(OrderResponse::from)
+                .toList();
     }
 }

@@ -12,24 +12,24 @@ import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("api/v1/orders")
+@RequestMapping("/api/v1/orders") // ⬅️ [수정] 표준 경로 슬래시(/) 추가
 public class OrderController {
 
     private final OrderService orderService;
 
     // 주문 생성
     @PostMapping
-    public ResponseEntity<Long> createOrder(@RequestBody OrderCreateRequest request) {
-        Long orderId = orderService.createOrder(request);
-        return ResponseEntity.ok(orderId);
-
-
+    public ResponseEntity<OrderResponse> createOrder(@RequestBody OrderCreateRequest request) {
+        OrderResponse response = orderService.createOrder(request);
+        return ResponseEntity.ok(response);
     }
 
-    // 전체 주문 목록 조회
+    // 주문 목록 조회 (이메일 쿼리 파라미터 검색 지원)
     @GetMapping
-    public ResponseEntity<List<OrderResponse>> getAllOrders() {
-        List<OrderResponse> responses = orderService.getAllOrders();
+    public ResponseEntity<List<OrderResponse>> getOrders(
+            @RequestParam(required = false) String email
+    ) {
+        List<OrderResponse> responses = orderService.getOrders(email);
         return ResponseEntity.ok(responses);
     }
 
@@ -42,18 +42,18 @@ public class OrderController {
 
     // 주문 배송 정보 수정
     @PatchMapping("/{id}")
-    public ResponseEntity<Void> updateOrder(
+    public ResponseEntity<OrderResponse> updateOrder(
             @PathVariable Long id,
             @RequestBody OrderAddressUpdateRequest request
     ) {
-        orderService.updateOrder(id, request);
-        return ResponseEntity.ok().build();
+        OrderResponse response = orderService.updateOrder(id, request);
+        return ResponseEntity.ok(response);
     }
 
     // 주문 취소
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> cancelOrder(@PathVariable Long id) {
-        orderService.cancelOrder(id);
-        return ResponseEntity.noContent().build();
+    public ResponseEntity<OrderResponse> cancelOrder(@PathVariable Long id) {
+        OrderResponse response = orderService.cancelOrder(id);
+        return ResponseEntity.ok(response);
     }
 }

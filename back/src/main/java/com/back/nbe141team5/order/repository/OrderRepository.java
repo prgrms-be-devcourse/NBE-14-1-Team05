@@ -20,4 +20,7 @@ public interface OrderRepository extends JpaRepository<CoffeeOrder, Long> {
 
     // 특정 기간 내 배송 예정일 기준 주문 목록 조회 (시작일시 ~ 종료일시)
     List<CoffeeOrder> findAllByDeliveryDateBetweenOrderByOrderDateAsc(LocalDateTime startDateTime, LocalDateTime endDateTime);
+
+    // 특정 사용자의 모든 주문 내역 조회 (주문일시 내림차순 정렬)
+    List<CoffeeOrder> findAllByEmailOrderByOrderDateDesc(String email);
 }

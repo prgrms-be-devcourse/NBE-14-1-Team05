@@ -1,6 +1,6 @@
-package com.back.nbe141team5.product.controller;
+package com.back.nbe141team5.product.admin.controller;
 
-import com.back.nbe141team5.product.service.ImageStorageService;
+import com.back.nbe141team5.product.admin.service.ImageStorageService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;

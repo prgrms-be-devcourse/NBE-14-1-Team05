@@ -1,4 +1,4 @@
-package com.back.nbe141team5.product.service;
+package com.back.nbe141team5.product.admin.service;
 
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;

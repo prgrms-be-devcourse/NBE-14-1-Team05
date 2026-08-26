@@ -1,9 +1,9 @@
-package com.back.nbe141team5.product.controller;
+package com.back.nbe141team5.product.admin.controller;
 
 import com.back.nbe141team5.product.dto.AdminProductResponse;
 import com.back.nbe141team5.product.dto.ProductCreateRequest;
 import com.back.nbe141team5.product.dto.ProductUpdateRequest;
-import com.back.nbe141team5.product.service.AdminProductService;
+import com.back.nbe141team5.product.admin.service.AdminProductService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;

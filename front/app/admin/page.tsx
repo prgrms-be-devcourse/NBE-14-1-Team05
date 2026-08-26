@@ -9,6 +9,26 @@ import {
   type OrderStatus,
 } from "@/types/order";
 
+function statusLabel(status: OrderStatus) {
+  return ORDER_STATUS_LABEL[status] ?? status;
+}
+function statusBadge(status: OrderStatus) {
+  const base =
+    "inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold";
+  switch (status) {
+    case "ORDERED":
+      return `${base} bg-[#F5EEE7] text-[#8A684A]`;
+    case "SHIPPED":
+      return `${base} bg-blue-50 text-blue-600`;
+    case "DELIVERED":
+      return `${base} bg-emerald-50 text-emerald-600`;
+    case "CANCELLED":
+      return `${base} bg-red-50 text-red-600`;
+    default:
+      return `${base} bg-neutral-100 text-neutral-600`;
+  }
+}
+
 export default function AdminPage() {
   const [productCount, setProductCount] = useState(0);
   const [orders, setOrders] = useState<Order[]>([]);
@@ -224,43 +244,51 @@ export default function AdminPage() {
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
-              <tr className="bg-neutral-50 text-left text-xs font-medium text-neutral-500">
-                <th className="px-6 py-4">주문번호</th>
+              <tr className="bg-[#FAFAF9] text-left text-xs font-semibold text-neutral-500">
+                <th className="w-14 px-3 py-4 text-center">번호</th>
                 <th className="px-6 py-4">이메일</th>
-                <th className="px-6 py-4">주문일</th>
-                <th className="px-6 py-4">결제금액</th>
-                <th className="px-6 py-4">상태</th>
+                <th className="w-44 px-4 py-4">주문일시</th>
+                <th className="w-36 px-4 py-4 text-right">결제금액</th>
+                <th className="w-28 px-3 py-4 text-center">상태</th>
               </tr>
             </thead>
-
             <tbody>
-              {recentOrders.map((order) => (
+              {recentOrders.map((order, index) => (
                 <tr
                   key={order.id}
-                  className="border-t border-neutral-100 text-sm transition hover:bg-neutral-50"
+                  className="border-t border-neutral-100 transition hover:bg-[#FCFBF9]"
                 >
-                  <td className="px-6 py-4 font-medium text-neutral-900">
-                    #{order.id}
+                  {/* 순번 (흐린 회색 1, 2, 3...) */}
+                  <td className="px-3 py-5 text-center text-sm text-neutral-400">
+                    {index + 1}
                   </td>
-
-                  <td className="px-6 py-4 text-neutral-600">{order.email}</td>
-
-                  <td className="px-6 py-4 text-neutral-500">
+                  {/* 주문자 (이메일 + 주문번호 2줄 표시) */}
+                  <td className="px-6 py-5">
+                    <div>
+                      <p className="text-sm font-semibold text-neutral-900">
+                        {order.email}
+                      </p>
+                      <p className="mt-1 text-xs text-neutral-400">
+                        주문 #{order.id}
+                      </p>
+                    </div>
+                  </td>
+                  {/* 주문일시 */}
+                  <td className="px-4 py-5 text-sm text-neutral-500 whitespace-nowrap">
                     {formatDate(order.orderDate)}
                   </td>
-
-                  <td className="px-6 py-4 font-medium text-neutral-800">
+                  {/* 결제금액 */}
+                  <td className="px-4 py-5 text-right text-sm font-semibold text-neutral-800 whitespace-nowrap">
                     {formatPrice(order.totalPrice)}원
                   </td>
-
-                  <td className="px-6 py-4">
-                    <span className="inline-flex rounded-full bg-neutral-100 px-3 py-1 text-xs font-medium text-neutral-600">
-                      {ORDER_STATUS_LABEL[order.status] ?? order.status}
+                  {/* 상태 뱃지 */}
+                  <td className="px-3 py-5 text-center whitespace-nowrap">
+                    <span className={statusBadge(order.status)}>
+                      {statusLabel(order.status)}
                     </span>
                   </td>
                 </tr>
               ))}
-
               {!loading && recentOrders.length === 0 && (
                 <tr>
                   <td

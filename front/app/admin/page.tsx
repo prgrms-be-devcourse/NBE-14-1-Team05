@@ -232,7 +232,7 @@ export default function AdminPage() {
       <section className="overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-sm">
         <div className="flex items-center justify-between border-b border-neutral-100 px-6 py-5">
           <div>
-            <h2 className="text-lg font-semibold text-neutral-900">
+            <h2 className="font-semibold text-neutral-900">
               최근 주문
             </h2>
 
@@ -250,14 +250,14 @@ export default function AdminPage() {
         </div>
 
         <div className="overflow-x-auto">
-          <table className="w-full">
+          <table className="w-full min-w-[680px]">
             <thead>
               <tr className="bg-[#FAFAF9] text-left text-xs font-semibold text-neutral-500">
-                <th className="w-14 px-3 py-4 text-center">번호</th>
-                <th className="px-6 py-4">이메일</th>
-                <th className="w-44 px-4 py-4">주문일시</th>
-                <th className="w-36 px-4 py-4 text-right">결제금액</th>
-                <th className="w-28 px-3 py-4 text-center">상태</th>
+                <th className="w-14 px-3 py-4 text-center whitespace-nowrap">번호</th>
+                <th className="w-72 px-6 py-4">이메일</th>
+                <th className="w-48 px-4 py-4 whitespace-nowrap">주문일시</th>
+                <th className="px-4 py-4 text-right whitespace-nowrap">결제금액</th>
+                <th className="w-28 px-4 py-4 text-center whitespace-nowrap">상태</th>
               </tr>
             </thead>
             <tbody>

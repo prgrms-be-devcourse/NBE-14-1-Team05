@@ -516,22 +516,16 @@ export default function AdminOrdersPage() {
         </div>
 
         <div className="overflow-x-auto">
-          <table className="w-full table-fixed">
+          <table className="w-full min-w-[900px] table-fixed">
             <thead>
               <tr className="bg-[#FAFAF9] text-left text-xs font-semibold text-neutral-500">
-                <th className="w-14 px-3 py-4 text-center">번호</th>
-
+                <th className="w-14 px-3 py-4 text-center whitespace-nowrap">번호</th>
                 <th className="px-6 py-4">이메일</th>
-
-                <th className="w-44 px-4 py-4">주문일시</th>
-
-                <th className="w-28 px-3 py-4 text-center">상태</th>
-
-                <th className="w-36 px-4 py-4 text-right">결제금액</th>
-
-                <th className="w-28 px-3 py-4 text-center">상태 변경</th>
-
-                <th className="w-24 px-3 py-4 text-center">상세</th>
+                <th className="w-44 px-4 py-4 whitespace-nowrap">주문일시</th>
+                <th className="w-28 px-3 py-4 text-center whitespace-nowrap">상태</th>
+                <th className="w-36 px-4 py-4 text-right whitespace-nowrap">결제금액</th>
+                <th className="w-28 px-3 py-4 text-center whitespace-nowrap">상태 변경</th>
+                <th className="w-24 px-3 py-4 text-center whitespace-nowrap">상세</th>
               </tr>
             </thead>
 

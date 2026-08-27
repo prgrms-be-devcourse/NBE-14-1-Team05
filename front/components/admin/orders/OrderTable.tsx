@@ -115,7 +115,8 @@ export default function OrderTable({
           {orders.map((order, index) => (
             <Fragment key={order.id}>
               <tr
-                className={`border-t border-neutral-100 transition ${
+                onClick={() => onToggleSelectOrder(order.id)}
+                className={`cursor-pointer border-t border-neutral-100 transition ${
                   selectedOrder?.id === order.id
                     ? "bg-[#FAF7F3] font-medium"
                     : "hover:bg-[#FCFBF9]"
@@ -157,11 +158,17 @@ export default function OrderTable({
                 </td>
 
                 {/* 원클릭 상태 변경 액션 버튼 */}
-                <td className="px-3 py-5 text-center whitespace-nowrap">
+                <td
+                  className="px-3 py-5 text-center whitespace-nowrap"
+                  onClick={(e) => e.stopPropagation()}
+                >
                   {order.status === "ORDERED" && (
                     <button
                       type="button"
-                      onClick={() => onStatusChange(order.id, "SHIPPED")}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onStatusChange(order.id, "SHIPPED");
+                      }}
                       className="cursor-pointer rounded-lg bg-[#A77A52] px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-[#8A684A]"
                     >
                       배송 시작
@@ -170,7 +177,10 @@ export default function OrderTable({
                   {order.status === "SHIPPED" && (
                     <button
                       type="button"
-                      onClick={() => onStatusChange(order.id, "DELIVERED")}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onStatusChange(order.id, "DELIVERED");
+                      }}
                       className="cursor-pointer rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-emerald-700"
                     >
                       배송 완료
@@ -191,7 +201,10 @@ export default function OrderTable({
                 <td className="px-4 py-5 text-center whitespace-nowrap">
                   <button
                     type="button"
-                    onClick={() => onToggleSelectOrder(order.id)}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onToggleSelectOrder(order.id);
+                    }}
                     className={`cursor-pointer rounded-lg border px-3 py-1.5 text-xs font-medium whitespace-nowrap transition ${
                       selectedOrder?.id === order.id
                         ? "border-[#A77A52] bg-[#A77A52] text-white"

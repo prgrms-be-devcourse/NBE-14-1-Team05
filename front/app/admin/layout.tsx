@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 
 const menus = [
   {
@@ -65,6 +65,9 @@ export default function AdminLayout({
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
+  const router = useRouter();
+
+  const isLoginPage = pathname === "/admin/login";
 
   const isActive = (href: string) => {
     if (href === "/admin") {
@@ -73,6 +76,30 @@ export default function AdminLayout({
 
     return pathname.startsWith(href);
   };
+
+  // 로그아웃
+  const handleLogout = async () => {
+    try {
+      const response = await fetch("/api/admin/auth/logout", {
+        method: "POST",
+      });
+
+      if (!response.ok) {
+        throw new Error("로그아웃 실패");
+      }
+
+      router.replace("/admin/login");
+      router.refresh();
+    } catch (error) {
+      console.error("관리자 로그아웃 실패:", error);
+      alert("로그아웃에 실패했습니다.");
+    }
+  };
+
+  // 로그인 페이지에서는 관리자 레이아웃을 보여주지 않음
+  if (isLoginPage) {
+    return <>{children}</>;
+  }
 
   return (
     <div className="flex min-h-screen bg-[#F8F7F4]">
@@ -138,10 +165,11 @@ export default function AdminLayout({
           </nav>
         </div>
 
-        {/* 쇼핑몰 이동 */}
+        {/* 하단 */}
         <div className="border-t border-white/[0.08] pt-4">
+          {/* 쇼핑몰 이동 */}
           <Link
-            href="/"
+            href="/products"
             className="group flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-neutral-500 transition hover:bg-white/[0.06] hover:text-white"
           >
             <svg
@@ -163,7 +191,7 @@ export default function AdminLayout({
               A
             </div>
 
-            <div className="min-w-0">
+            <div className="min-w-0 flex-1">
               <p className="text-sm font-medium text-neutral-200">
                 관리자
               </p>
@@ -172,6 +200,15 @@ export default function AdminLayout({
                 Administrator
               </p>
             </div>
+
+            {/* 로그아웃 버튼 */}
+            <button
+              type="button"
+              onClick={handleLogout}
+              className="cursor-pointer rounded-lg px-2 py-2 text-xs font-medium text-neutral-500 transition hover:bg-white/[0.06] hover:text-white"
+            >
+              로그아웃
+            </button>
           </div>
         </div>
       </aside>

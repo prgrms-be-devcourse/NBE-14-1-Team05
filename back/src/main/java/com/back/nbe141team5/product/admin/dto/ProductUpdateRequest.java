@@ -1,10 +1,10 @@
-package com.back.nbe141team5.product.dto;
+package com.back.nbe141team5.product.admin.dto;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 
-public record ProductCreateRequest(
+public record ProductUpdateRequest(
 
         @NotBlank(message = "상품명은 필수입니다.")
         String name,

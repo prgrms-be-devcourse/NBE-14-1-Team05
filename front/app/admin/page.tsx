@@ -567,7 +567,7 @@ export default function AdminPage() {
       {/* 하단: 일별 / 월별 / 특정일 선택 매출 통계 */}
       <section
         id="sales-stats"
-        className="overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-sm"
+        className="rounded-2xl border border-neutral-200 bg-white shadow-sm"
       >
         <div className="flex flex-col gap-3 border-b border-neutral-100 px-6 py-5 sm:flex-row sm:items-center sm:justify-between">
           <div>
@@ -750,7 +750,7 @@ export default function AdminPage() {
           </div>
         </div>
 
-        <div className="overflow-x-auto">
+        <div className="overflow-x-auto rounded-b-2xl">
           {salesTab === "DAILY" ? (
             <table className="w-full min-w-[600px]">
               <thead>

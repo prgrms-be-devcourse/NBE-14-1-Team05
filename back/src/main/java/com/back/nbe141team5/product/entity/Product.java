@@ -1,16 +1,19 @@
 package com.back.nbe141team5.product.entity;
 
 import com.back.nbe141team5.global.BaseEntity;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 @Entity
 @Getter
+@Table(
+        name = "product",
+        indexes = {
+                @Index(name = "idx_product_active_created", columnList = "isActive, createdDate")
+        }
+)
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Product extends BaseEntity {
 

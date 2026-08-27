@@ -29,10 +29,17 @@ public class OrderHistoryVerificationService {
 
         LocalDateTime expiresAt = LocalDateTime.now().plusMinutes(5);
 
-        emailVerificationRepository.findByEmail(email)
-                .ifPresent(emailVerificationRepository::delete);
+        EmailVerification verification =
+                emailVerificationRepository.findByEmail(email)
+                        .orElse(null);
 
-        emailVerificationRepository.save(new EmailVerification(email, code, expiresAt));
+        if (verification == null) {
+            emailVerificationRepository.save(
+                    new EmailVerification(email, code, expiresAt)
+            );
+        } else {
+            verification.update(code, expiresAt);
+        }
 
         emailService.sendEmail(email, "Order Verification Code", content);
     }

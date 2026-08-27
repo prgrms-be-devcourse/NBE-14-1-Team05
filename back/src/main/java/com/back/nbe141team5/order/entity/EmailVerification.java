@@ -43,4 +43,9 @@ public class EmailVerification {
     public boolean matches(String code) {
         return this.code.equals(code);
     }
+
+    public void update(String code, LocalDateTime expiresAt) {
+        this.code = code;
+        this.expiresAt = expiresAt;
+    }
 }

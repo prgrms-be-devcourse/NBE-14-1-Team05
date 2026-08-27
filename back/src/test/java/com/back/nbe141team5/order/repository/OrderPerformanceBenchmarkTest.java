@@ -34,16 +34,17 @@ class OrderPerformanceBenchmarkTest {
     @Autowired
     private JdbcTemplate jdbcTemplate;
 
-    // 2중 안전장치: 이메일 발송 빈을 Mock으로 완전히 대체하여 실제 발송 원천 차단
+    // 2중 안전장치: 이메일 발송 빈을 Mock으로 격리하여 실제 발송 차단
     @MockitoBean
     private EmailService emailService;
 
+    // 100만 건 대용량 데이터 테스트
     private static final int TOTAL_ORDERS = 1_000_000;
     private static final int BATCH_SIZE = 5_000;
 
     @BeforeEach
     void setUpLargeData() {
-        // 1. 기본 상품 등록
+        // 1. 기본 상품 등록 및 실제 등록된 Product ID 조회
         if (productRepository.count() == 0) {
             productRepository.save(new Product("에티오피아 예가체프", 5000, "꽃향기와 상큼한 산미", ""));
             productRepository.save(new Product("과테말라 안티구아", 6000, "스모키한 풍미와 묵직한 바디감", ""));
@@ -53,7 +54,7 @@ class OrderPerformanceBenchmarkTest {
         List<Product> products = productRepository.findAll();
         Long defaultProductId = products.get(0).getId();
 
-        // 2. 대용량 데이터 확인 및 적재
+        // 2. 기존 데이터 확인 후 비어있을 때만 대용량 데이터 적재
         Integer count = jdbcTemplate.queryForObject("SELECT count(*) FROM orders", Integer.class);
         if (count != null && count >= TOTAL_ORDERS) {
             return;
@@ -71,11 +72,13 @@ class OrderPerformanceBenchmarkTest {
         List<Object[]> itemBatch = new ArrayList<>();
 
         for (int i = 1; i <= TOTAL_ORDERS; i++) {
-            String email = "user" + (i % 5_000) + "@test.com";
+            String email = "user" + (i % 5_000) + "@test.com"; // 5,000명의 고객이 반복 주문
             String address = "서울시 서초구 반포대로 " + (i % 100);
             String postcode = String.format("%05d", 10000 + (i % 90000));
 
+            // 최근 30일 이내로 랜덤 분산된 주문일시
             LocalDateTime orderDate = baseDate.minusDays(random.nextInt(30)).minusHours(random.nextInt(24)).minusMinutes(random.nextInt(60));
+            // 배송일은 주문일 기준 정책 반영
             LocalDateTime deliveryDate = orderDate.toLocalDate().plusDays(1).atStartOfDay();
             OrderStatus status = statuses[random.nextInt(statuses.length)];
             int totalPrice = (random.nextInt(10) + 1) * 5000;
@@ -120,7 +123,7 @@ class OrderPerformanceBenchmarkTest {
     }
 
     @Test
-    @DisplayName("[성능 벤치마크] 주요 4대 쿼리 응답 속도 측정")
+    @DisplayName("[성능 벤치마크] 주요 핵심 쿼리 응답 속도 측정")
     void measureQueryPerformance() {
         System.out.println("\n=======================================================");
         System.out.println("           [성능 벤치마크 측정 시작] (" + TOTAL_ORDERS + "건)");
@@ -134,7 +137,7 @@ class OrderPerformanceBenchmarkTest {
         sw1.stop();
         System.out.printf("1. 당일 배송 대상 주문 조회 (%d건 발견) : %d ms\n", deliveries.size(), sw1.getTotalTimeMillis());
 
-        // 2. 고객 이메일별 미배송 최근 주문 조회 성능
+        // 2. 고객 이메일별 미배송 최근 주문 조회 성능 (인덱스 탐색)
         StopWatch sw2 = new StopWatch();
         sw2.start();
         var latestOrder = orderRepository.findTopByEmailAndStatusOrderByOrderDateDesc("user100@test.com", OrderStatus.ORDERED);
@@ -156,6 +159,13 @@ class OrderPerformanceBenchmarkTest {
         var topProducts = orderRepository.findTopQuantityProducts(PageRequest.of(0, 3));
         sw4.stop();
         System.out.printf("4. 판매 수량 TOP 3 상품 집계 : %d ms\n", sw4.getTotalTimeMillis());
+
+        // 5. 특정 고객의 전체 주문 내역 조회 (인덱스 탐색)
+        StopWatch sw5 = new StopWatch();
+        sw5.start();
+        var userOrders = orderRepository.findAllByEmailOrderByOrderDateDesc("user100@test.com");
+        sw5.stop();
+        System.out.printf("5. 특정 고객의 전체 주문 내역 조회 (%d건 발견) : %d ms\n", userOrders.size(), sw5.getTotalTimeMillis());
 
         System.out.println("=======================================================\n");
     }

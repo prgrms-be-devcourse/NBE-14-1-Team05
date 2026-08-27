@@ -45,4 +45,36 @@ public interface OrderRepository extends JpaRepository<CoffeeOrder, Long> {
             Pageable pageable
     );
     
+    // 취소되지 않은 주문의 총 누적 매출 합계
+    @Query("SELECT COALESCE(SUM(o.totalPrice), 0) FROM CoffeeOrder o WHERE o.status != 'CANCELLED'")
+    long getTotalRevenue();
+
+    // 판매 수량 기준 인기 상품 TOP 3 (취소 제외)
+    @Query("""
+                SELECT oi.productName, COALESCE(SUM(oi.quantity), 0), COALESCE(SUM(oi.quantity * p.price), 0)
+                FROM OrderItem oi
+                JOIN oi.coffeeOrder o
+                JOIN oi.product p
+                WHERE o.status != 'CANCELLED'
+                GROUP BY oi.productName
+                ORDER BY SUM(oi.quantity) DESC
+            """)
+    List<Object[]> findTopQuantityProducts(Pageable pageable);
+
+    // 매출액 기준 인기 상품 TOP 3 (취소 제외)
+    @Query("""
+                SELECT oi.productName, COALESCE(SUM(oi.quantity), 0), COALESCE(SUM(oi.quantity * p.price), 0)
+                FROM OrderItem oi
+                JOIN oi.coffeeOrder o
+                JOIN oi.product p
+                WHERE o.status != 'CANCELLED'
+                GROUP BY oi.productName
+                ORDER BY SUM(oi.quantity * p.price) DESC
+            """)
+    List<Object[]> findTopRevenueProducts(Pageable pageable);
+
+    // 통계 집계용 정상 주문 목록 전체 조회 (주문일시 오름차순)
+    @Query("SELECT o FROM CoffeeOrder o WHERE o.status != 'CANCELLED' ORDER BY o.orderDate ASC")
+    List<CoffeeOrder> findAllActiveOrders();
+
 }

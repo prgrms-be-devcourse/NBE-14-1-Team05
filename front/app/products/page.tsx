@@ -1,168 +1,188 @@
-'use client';
+"use client";
 
 import Link from "next/link";
 import { addToCart, getCart } from "@/types/cart";
-
 import { useEffect, useState } from "react";
 import { formatKRW } from "@/lib/format";
 
 type Product = {
-    id: number;
-    name: string;
-    price: number;
-    description: string;
-    imageUrl: string;
+  id: number;
+  name: string;
+  price: number;
+  description: string;
+  imageUrl: string;
+};
+
+type ProductPage = {
+  content: Product[];
+  totalPages: number;
+  number: number;
 };
 
 export default function Home() {
+  const [products, setProducts] = useState<Product[]>([]);
+  const [cartCount, setCartCount] = useState(0);
+  const [page, setPage] = useState(0);
+  const [totalPages, setTotalPages] = useState(0);
 
-    const [products, setProducts] = useState<Product[]>([]);
-    const [cartCount, setCartCount] = useState(0);
-    const [page, setPage] = useState(0);
-    const [totalPages, setTotalPages] = useState(0);
+  function refreshCount() {
+    setCartCount(
+        getCart().reduce((sum, item) => sum + item.quantity, 0)
+    );
+  }
 
-    function refreshCount() {
-        setCartCount(
-            getCart().reduce((s, i) => s + i.quantity, 0)
-        );
-    }
+  useEffect(() => {
+    refreshCount();
 
-    useEffect(() => {
-        refreshCount();
+    fetch(
+        `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/products?page=${page}`
+    )
+        .then((response) => {
+          if (!response.ok) {
+            throw new Error("상품 목록 조회 실패");
+          }
 
-        fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/products?page=${page}`)
-            .then((response) => response.json())
-            .then((data) => {
-                setProducts(data.content);
-                setTotalPages(data.totalPages);
-            });
-        //페이지 만큼 실행
-    }, [page]);
-
-    function handleAdd(product: Product) {
-
-        addToCart({
-            id: product.id,
-            name: product.name,
-            price: product.price,
-            image: product.imageUrl,
+          return response.json();
+        })
+        .then((data: ProductPage) => {
+          setProducts(data.content);
+          setTotalPages(data.totalPages);
+        })
+        .catch((error) => {
+          console.error("상품 조회 실패:", error);
         });
+  }, [page]);
 
-        refreshCount();
-    }
+  function handleAdd(product: Product) {
+    addToCart({
+      id: product.id,
+      name: product.name,
+      price: product.price,
+      image: product.imageUrl,
+    });
 
-    return (
+    refreshCount();
+  }
 
-        <div className="min-h-screen bg-[#F7F6F3]">
+  return (
+      <div className="min-h-screen bg-[#F7F6F3]">
+        {/* 헤더 */}
+        <header className="sticky top-0 z-10 flex items-center justify-between border-b border-neutral-200 bg-[#F7F6F3]/90 px-6 py-4 backdrop-blur lg:px-12">
+        <span className="text-lg font-semibold tracking-tight text-neutral-900">
+          SHOP
+        </span>
 
-            <header className="sticky top-0 z-10 bg-[#F7F6F3]/90 backdrop-blur border-b border-neutral-200 px-6 lg:px-12 py-4 flex items-center justify-between">
+          <div className="flex items-center gap-5">
+            {/* 관리자 인증 페이지로 이동 */}
+            <Link
+                href="/admin"
+                className="text-sm text-neutral-700 transition hover:text-black"
+            >
+              관리자
+            </Link>
 
-                <span className="text-lg font-semibold tracking-tight text-neutral-900">
-                    SHOP
+            {/* 3번 반영: 주문 조회 바로가기 */}
+            <Link
+                href="/orders"
+                className="text-sm text-neutral-700 transition hover:text-black"
+            >
+              주문 조회
+            </Link>
+
+            <Link
+                href="/cart"
+                className="flex items-center gap-2 text-sm text-neutral-700 transition hover:text-black"
+            >
+              장바구니
+
+              {cartCount > 0 && (
+                  <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-black text-xs text-white tabular-nums">
+                {cartCount}
+              </span>
+              )}
+            </Link>
+          </div>
+        </header>
+
+        {/* 상품 목록 */}
+        <main className="mx-auto max-w-6xl px-6 py-12 lg:px-12">
+          <h1 className="mb-8 text-3xl font-light text-neutral-900">
+            New{" "}
+            <em className="not-italic font-semibold">
+              Arrivals
+            </em>
+          </h1>
+
+          <div className="grid grid-cols-2 gap-x-6 gap-y-10 md:grid-cols-3">
+            {products.map((product) => (
+                <div
+                    key={product.id}
+                    className="group"
+                >
+                  {/* 상품 이미지 */}
+                  <Link href={`/products/${product.id}`}>
+                    <div className="mb-3 aspect-[4/5] overflow-hidden rounded bg-neutral-100">
+                      <img
+                          src={product.imageUrl}
+                          alt={product.name}
+                          className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
+                      />
+                    </div>
+                  </Link>
+
+                  {/* 상품명 */}
+                  <h3 className="text-sm font-light text-neutral-900">
+                    {product.name}
+                  </h3>
+
+                  {/* 가격 + 장바구니 */}
+                  <div className="mt-1 flex items-center justify-between">
+                <span className="text-sm font-semibold text-neutral-900">
+                  {formatKRW(product.price)}
                 </span>
-                {/* TODO: 로그인/권한 기능 구현 후 ADMIN 사용자에게만 노출 */}
-                <div className="flex items-center gap-5">
-                    <Link
-                        href="/admin"
-                        className="text-sm text-neutral-700 hover:text-black transition"
+
+                    <button
+                        type="button"
+                        onClick={() => handleAdd(product)}
+                        className="rounded-sm border border-black bg-black px-4 py-2 text-xs text-white transition hover:bg-neutral-800"
                     >
-                        관리자
-                    </Link>
-
-                    <Link
-                        href="/cart"
-                        className="flex items-center gap-2 text-sm text-neutral-700 hover:text-black transition"
-                    >
-                        장바구니
-
-                        {cartCount > 0 && (
-                            <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-black text-white text-xs tabular-nums">
-                                {cartCount}
-                            </span>
-                        )}
-                    </Link>
+                      담기
+                    </button>
+                  </div>
                 </div>
+            ))}
+          </div>
 
-            </header>
+          {/* 상품이 없을 때 */}
+          {products.length === 0 && (
+              <div className="py-20 text-center text-sm text-neutral-400">
+                판매 중인 상품이 없습니다.
+              </div>
+          )}
 
-            <main className="px-6 lg:px-12 py-12 max-w-6xl mx-auto">
-
-                <h1 className="text-3xl font-light mb-8 text-neutral-900">
-
-                    New{" "}
-
-                    <em className="not-italic font-semibold">
-                        Arrivals
-                    </em>
-
-                </h1>
-
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-x-6 gap-y-10">
-
-                    {products.map((product) => (
-
-                        <div
-                            key={product.id}
-                            className="group"
-                        >
-
-                            <div className="aspect-[4/5] bg-neutral-100 rounded overflow-hidden mb-3">
-
-                                {/* 이미지 눌렀을 때 상세 페이지로 이동 */}
-                                <Link href={`/products/${product.id}`}>
-                                    <div className="aspect-[4/5] bg-neutral-100 rounded overflow-hidden mb-3">
-                                        <img src={product.imageUrl}
-                                            alt={product.name}
-                                            className="w-full h-full object-cover group-hover:scale-105 transition duration-500"
-                                        />
-                                    </div>
-                                </Link>
-
-                            </div>
-
-                            <h3 className="text-sm font-light text-neutral-900">
-                                {product.name}
-                            </h3>
-
-                            <div className="flex items-center justify-between mt-1">
-
-                                <span className="text-sm font-semibold text-neutral-900">
-                                    {formatKRW(product.price)}
-                                </span>
-
-                                <button
-                                    onClick={() => handleAdd(product)}
-                                    className="text-xs px-4 py-2 bg-black text-white border border-black rounded-sm hover:bg-neutral-800 transition"
-                                >
-                                    담기
-                                </button>
-
-                            </div>
-
-                        </div>
-
-                    ))}
-
-                </div>
-                <div className="flex justify-center gap-2 mt-10 ">
-                    {Array.from({ length: totalPages }, (_, index) => (
+          {/* 페이징 */}
+          {totalPages > 0 && (
+              <div className="mt-10 flex justify-center gap-2">
+                {Array.from(
+                    { length: totalPages },
+                    (_, index) => (
                         <button
                             key={index}
+                            type="button"
                             onClick={() => setPage(index)}
                             className={
-                                page === index
-                                    ? "px-4 py-2 border border-black bg-black text-white transition transform hover:scale-105"
-                                    : "px-4 py-2 border border-black bg-white text-black hover:bg-neutral-100 transition transform hover:scale-105"
+                              page === index
+                                  ? "border border-black bg-black px-4 py-2 text-white transition hover:scale-105"
+                                  : "border border-black bg-white px-4 py-2 text-black transition hover:scale-105 hover:bg-neutral-100"
                             }
                         >
-                            {index + 1}
+                          {index + 1}
                         </button>
-                    ))}
-                </div>
-            </main>
-
-        </div>
-
-    );
-
+                    )
+                )}
+              </div>
+          )}
+        </main>
+      </div>
+  );
 }

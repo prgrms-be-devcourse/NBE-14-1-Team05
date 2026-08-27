@@ -1,4 +1,7 @@
-// 특정 상품 조회
+const API_BASE_URL =
+  process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:8080";
+
+// 관리자 상품 단건 조회
 export async function GET(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
@@ -7,7 +10,7 @@ export async function GET(
     const { id } = await params;
 
     const response = await fetch(
-      `http://localhost:8080/api/v1/products/${id}`,
+      `${API_BASE_URL}/api/v1/admin/products/${id}`,
       {
         cache: "no-store",
       }
@@ -43,7 +46,7 @@ export async function PUT(
     const body = await request.json();
 
     const response = await fetch(
-      `http://localhost:8080/api/v1/admin/products/${id}`,
+      `${API_BASE_URL}/api/v1/admin/products/${id}`,
       {
         method: "PUT",
         headers: {
@@ -81,7 +84,7 @@ export async function PUT(
   }
 }
 
-// 상품 삭제
+// 상품 판매 중단
 export async function DELETE(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
@@ -90,7 +93,7 @@ export async function DELETE(
     const { id } = await params;
 
     const response = await fetch(
-      `http://localhost:8080/api/v1/admin/products/${id}`,
+      `${API_BASE_URL}/api/v1/admin/products/${id}`,
       {
         method: "DELETE",
       }
@@ -100,13 +103,13 @@ export async function DELETE(
       const errorText = await response.text();
 
       console.error(
-        "상품 삭제 실패:",
+        "상품 판매 중단 실패:",
         response.status,
         errorText
       );
 
       return Response.json(
-        { message: "상품 삭제 실패" },
+        { message: "상품 판매 중단 실패" },
         { status: response.status }
       );
     }
@@ -115,10 +118,10 @@ export async function DELETE(
       status: 204,
     });
   } catch (error) {
-    console.error("상품 삭제 실패:", error);
+    console.error("상품 판매 중단 실패:", error);
 
     return Response.json(
-      { message: "상품 삭제 중 오류가 발생했습니다." },
+      { message: "상품 판매 중단 중 오류가 발생했습니다." },
       { status: 500 }
     );
   }

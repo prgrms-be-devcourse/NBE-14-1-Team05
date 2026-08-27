@@ -1,10 +1,10 @@
 package com.back.nbe141team5.product.admin.controller;
 
 import com.back.nbe141team5.product.admin.service.AdminProductService;
-import com.back.nbe141team5.product.dto.AdminProductPageResponse;
-import com.back.nbe141team5.product.dto.AdminProductResponse;
-import com.back.nbe141team5.product.dto.ProductCreateRequest;
-import com.back.nbe141team5.product.dto.ProductUpdateRequest;
+import com.back.nbe141team5.product.admin.dto.AdminProductPageResponse;
+import com.back.nbe141team5.product.admin.dto.AdminProductResponse;
+import com.back.nbe141team5.product.admin.dto.ProductCreateRequest;
+import com.back.nbe141team5.product.admin.dto.ProductUpdateRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;

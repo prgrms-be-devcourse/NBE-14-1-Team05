@@ -1,8 +1,8 @@
 package com.back.nbe141team5.product.admin.service;
 
-import com.back.nbe141team5.product.dto.AdminProductResponse;
-import com.back.nbe141team5.product.dto.ProductCreateRequest;
-import com.back.nbe141team5.product.dto.ProductUpdateRequest;
+import com.back.nbe141team5.product.admin.dto.AdminProductResponse;
+import com.back.nbe141team5.product.admin.dto.ProductCreateRequest;
+import com.back.nbe141team5.product.admin.dto.ProductUpdateRequest;
 import com.back.nbe141team5.product.entity.Product;
 import com.back.nbe141team5.product.exception.ProductNotFoundException;
 import com.back.nbe141team5.product.repository.ProductRepository;

@@ -1,4 +1,4 @@
-package com.back.nbe141team5.product.dto;
+package com.back.nbe141team5.product.admin.dto;
 
 import org.springframework.data.domain.Page;
 

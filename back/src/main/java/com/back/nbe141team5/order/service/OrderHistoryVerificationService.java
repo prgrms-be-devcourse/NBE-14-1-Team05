@@ -6,6 +6,7 @@ import com.back.nbe141team5.order.entity.EmailVerification;
 import com.back.nbe141team5.order.repository.EmailVerificationRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -17,6 +18,8 @@ public class OrderHistoryVerificationService {
     private final EmailService emailService;
     private final EmailVerificationRepository emailVerificationRepository;
 
+    // 인증번호를 생성해 저장하고(같은 이메일의 기존 인증번호는 제거) 안내 메일을 발송한다.
+    @Transactional
     public void sendVerificationEmail(String email) {
         String code = UUID.randomUUID()
                 .toString()
@@ -24,23 +27,21 @@ public class OrderHistoryVerificationService {
 
         String content = verificationCodeContent(code);
 
-        emailService.sendEmail(email, "Order Verification Code", content);
-
         LocalDateTime expiresAt = LocalDateTime.now().plusMinutes(5);
 
-        if (emailVerificationRepository.findByEmail(email) != null) {
-            emailVerificationRepository.delete(emailVerificationRepository.findByEmail(email));
-        }
+        emailVerificationRepository.findByEmail(email)
+                .ifPresent(emailVerificationRepository::delete);
+
         emailVerificationRepository.save(new EmailVerification(email, code, expiresAt));
+
+        emailService.sendEmail(email, "Order Verification Code", content);
     }
 
+    // 인증번호를 검증한다. 인증 정보 없음/만료/불일치 시 EmailVerificationException 을 던진다.
     public void verifyCode(String email, String code) {
 
-        EmailVerification emailVerification = emailVerificationRepository.findByEmail(email);
-
-        if (emailVerification == null) {
-            throw new EmailVerificationException("인증 정보를 찾을 수 없습니다. 인증번호를 다시 요청해주세요.");
-        }
+        EmailVerification emailVerification = emailVerificationRepository.findByEmail(email)
+                .orElseThrow(() -> new EmailVerificationException("인증 정보를 찾을 수 없습니다. 인증번호를 다시 요청해주세요."));
 
         if (emailVerification.isExpired()) {
             throw new EmailVerificationException("인증번호가 만료되었습니다. 인증번호를 다시 요청해주세요.");
@@ -51,6 +52,7 @@ public class OrderHistoryVerificationService {
         }
     }
 
+    // 인증번호 안내 메일의 HTML 본문을 생성한다.
     private String verificationCodeContent(String code) {
         return """
             <div style="

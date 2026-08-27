@@ -20,6 +20,7 @@ public class GlobalExceptionHandler {
                 .body(e.getMessage());
     }
 
+    // 이메일 인증 실패(인증 정보 없음/만료/불일치) → 400
     @ExceptionHandler(EmailVerificationException.class)
     public ResponseEntity<String> handleEmailVerification(
             EmailVerificationException e
@@ -29,6 +30,7 @@ public class GlobalExceptionHandler {
                 .body(e.getMessage());
     }
 
+    // 메일 발송 실패 → 502 (수신자 노출 방지를 위해 고정 문구 반환)
     @ExceptionHandler(MailSendException.class)
     public ResponseEntity<String> handleMailSend(
             MailSendException e

@@ -5,6 +5,7 @@ import com.back.nbe141team5.order.dto.OrderAddressUpdateRequest;
 import com.back.nbe141team5.order.dto.OrderCreateRequest;
 import com.back.nbe141team5.order.dto.OrderResponse;
 import com.back.nbe141team5.order.service.OrderService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
@@ -21,7 +22,7 @@ public class OrderController {
 
     // 주문 생성
     @PostMapping
-    public ResponseEntity<Long> createOrder(@RequestBody OrderCreateRequest request) {
+    public ResponseEntity<Long> createOrder(@RequestBody @Valid OrderCreateRequest request) {
         Long orderId = orderService.createOrder(request);
         return ResponseEntity.ok(orderId);
 

@@ -1,11 +1,15 @@
 package com.back.nbe141team5.mail;
 
-import jakarta.validation.constraints.Email;
+import jakarta.mail.MessagingException;
+import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.mail.SimpleMailMessage;
+import org.springframework.mail.MailException;
 import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
+
+import java.util.IllegalFormatException;
 
 @RequiredArgsConstructor
 @Service
@@ -16,20 +20,26 @@ public class EmailService {
     @Value("${spring.mail.username}")
     private String from;
 
+    // HTML 메일 발송. 메시지 구성/전송 실패 시 MailSendException(RuntimeException)으로 래핑해 던진다.
     public void sendEmail(
             String to,
             String subject,
             String content
     ) {
+        try {
+            MimeMessage mimeMessage = mailSender.createMimeMessage();
 
-        SimpleMailMessage message = new SimpleMailMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, true, "UTF-8");
 
-        message.setFrom(from);
-        message.setTo(to);
-        message.setSubject(subject);
-        message.setText(content);
+            helper.setFrom(from);
+            helper.setTo(to);
+            helper.setSubject(subject);
+            helper.setText(content, true);
 
-        mailSender.send(message);
+            mailSender.send(mimeMessage);
 
+        } catch (MessagingException | MailException | IllegalArgumentException e) {
+            throw new MailSendException(to, e);
+        }
     }
 }

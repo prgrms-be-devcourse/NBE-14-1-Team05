@@ -6,6 +6,7 @@ import com.back.nbe141team5.order.entity.OrderStatus;
 import com.back.nbe141team5.product.entity.Product;
 import com.back.nbe141team5.product.repository.ProductRepository;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,6 +23,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
+@Disabled("100만 건 대용량 벤치마크 테스트 (필요 시에만 주석 해제 후 수동 실행)")
 @SpringBootTest
 class OrderPerformanceBenchmarkTest {
 

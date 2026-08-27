@@ -48,6 +48,7 @@ export default function CheckoutPage() {
         if (!form.email.trim() || !form.email.includes("@")) e.email = "올바른 이메일을 입력해 주세요.";
         if (!form.address.trim()) e.address = "주소를 입력해 주세요.";
         if (!form.postcode.trim()) e.postcode = "우편번호를 입력해 주세요.";
+        else if (form.postcode.length !== 5) e.postcode = "우편번호 5자리를 정확히 입력해주세요.";
         setErrors(e);
         return Object.keys(e).length === 0;
     }

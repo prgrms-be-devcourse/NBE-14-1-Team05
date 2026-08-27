@@ -9,6 +9,8 @@ import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 
+import java.io.UnsupportedEncodingException;
+
 
 @RequiredArgsConstructor
 @Service
@@ -30,7 +32,7 @@ public class EmailService {
 
             MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, true, "UTF-8");
 
-            helper.setFrom(from);
+            helper.setFrom(from, "Grids & Circles");
             helper.setTo(to);
             helper.setSubject(subject);
             helper.setText(content, true);
@@ -39,6 +41,8 @@ public class EmailService {
 
         } catch (MessagingException | MailException | IllegalArgumentException e) {
             throw new MailSendException(to, e);
+        } catch (UnsupportedEncodingException e) {
+            throw new RuntimeException(e);
         }
     }
 }

@@ -1,5 +1,6 @@
 package com.back.nbe141team5.order.service;
 
+import com.back.nbe141team5.mail.EmailService;
 import com.back.nbe141team5.order.dto.OrderItemRequest;
 import com.back.nbe141team5.order.dto.OrderCreateRequest;
 import com.back.nbe141team5.order.dto.OrderResponse;
@@ -27,14 +28,26 @@ public class OrderService {
 
     private final OrderRepository orderRepository;
     private final ProductRepository productRepository;
+    private final EmailService emailService;
 
     // [메인 진입점] 주문 생성 요청 처리
     @Transactional
     public Long createOrder(OrderCreateRequest request) {
         LocalDateTime now = LocalDateTime.now();
 
-        return tryMergeWithExistingOrder(request, now)
+        Long orderId =  tryMergeWithExistingOrder(request, now)
                 .orElseGet(() -> createNewOrder(request, now));
+
+        String subject = "#" + orderId + " Order Created";
+        String content = createReceip(request);
+
+        emailService.sendEmail(request.email(), subject, content);
+
+        return orderId;
+    }
+
+    private String createReceip(OrderCreateRequest request) {
+        return "주문 테스트";
     }
 
     // 합배송 (주문 병합) 함수

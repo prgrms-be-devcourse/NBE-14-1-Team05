@@ -1,11 +1,13 @@
 package com.back.nbe141team5.order.controller;
 
+import com.back.nbe141team5.mail.EmailService;
 import com.back.nbe141team5.order.dto.OrderAddressUpdateRequest;
 import com.back.nbe141team5.order.dto.OrderCreateRequest;
 import com.back.nbe141team5.order.dto.OrderResponse;
 import com.back.nbe141team5.order.service.OrderService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;

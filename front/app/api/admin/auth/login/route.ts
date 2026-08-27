@@ -26,10 +26,11 @@ export async function POST(request: Request) {
       message: "관리자 인증 성공",
     });
 
+    // 관리자 인증 쿠키 생성
     response.cookies.set("admin-auth", "authenticated", {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
+      sameSite: "lax",
       path: "/",
       maxAge: 60 * 60 * 2, // 2시간
     });

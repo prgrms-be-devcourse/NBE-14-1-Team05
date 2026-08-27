@@ -1,11 +1,8 @@
 "use client";
 
 import { FormEvent, useState } from "react";
-import { useRouter } from "next/navigation";
 
 export default function AdminLoginPage() {
-  const router = useRouter();
-
   const [adminCode, setAdminCode] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -32,8 +29,9 @@ export default function AdminLoginPage() {
         return;
       }
 
-      router.push("/admin");
-      router.refresh();
+      // 로그인 성공 후 전체 페이지 이동
+      // 인증 쿠키가 적용된 상태로 /admin을 새로 요청
+      window.location.replace("/admin");
     } catch (error) {
       console.error("관리자 인증 실패:", error);
       setError("관리자 인증 중 오류가 발생했습니다.");
@@ -43,72 +41,75 @@ export default function AdminLoginPage() {
   };
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-[#F7F4F0] px-4">
+    <div className="flex min-h-screen items-center justify-center bg-[#F8F7F4] px-6">
       <div className="w-full max-w-md">
-        <div className="rounded-2xl border border-neutral-200 bg-white p-8 shadow-sm">
-          <div className="mb-8 text-center">
-            <p className="mb-2 text-sm font-semibold tracking-wider text-[#9A7655]">
-              ADMIN
-            </p>
-
-            <h1 className="text-2xl font-bold text-neutral-900">
-              관리자 인증
-            </h1>
-
-            <p className="mt-2 text-sm text-neutral-500">
-              관리자 코드를 입력해주세요.
-            </p>
+        {/* 상단 */}
+        <div className="mb-8 text-center">
+          <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-[#A77A52] text-lg font-bold text-white">
+            C
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-5">
-            <div>
-              <label
-                htmlFor="adminCode"
-                className="mb-2 block text-sm font-semibold text-neutral-700"
-              >
-                관리자 코드
-              </label>
+          <h1 className="text-2xl font-bold tracking-tight text-neutral-900">
+            COFFEE ADMIN
+          </h1>
 
-              <input
-                id="adminCode"
-                type="password"
-                value={adminCode}
-                onChange={(e) => setAdminCode(e.target.value)}
-                placeholder="관리자 코드를 입력하세요"
-                autoComplete="off"
-                className="w-full rounded-xl border border-neutral-200 px-4 py-3 text-sm text-neutral-900 outline-none transition placeholder:text-neutral-300 focus:border-[#A77A52] focus:ring-2 focus:ring-[#A77A52]/10"
-                required
-              />
-
-              {error && (
-                <p className="mt-2 text-sm text-red-500">
-                  {error}
-                </p>
-              )}
-            </div>
-
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full cursor-pointer rounded-xl bg-[#1F1B18] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#342D28] disabled:cursor-not-allowed disabled:opacity-50"
-            >
-              {loading ? "인증 중..." : "관리자 페이지 들어가기"}
-            </button>
-          </form>
-
-          <button
-            type="button"
-            onClick={() => router.push("/products")}
-            className="mt-4 w-full cursor-pointer py-2 text-sm font-medium text-neutral-400 transition hover:text-neutral-700"
-          >
-            쇼핑몰로 돌아가기
-          </button>
+          <p className="mt-2 text-sm text-neutral-500">
+            관리자 코드를 입력해주세요.
+          </p>
         </div>
 
-        <p className="mt-4 text-center text-xs text-neutral-400">
-          관리자 전용 페이지입니다.
-        </p>
+        {/* 로그인 폼 */}
+        <form
+          onSubmit={handleSubmit}
+          className="rounded-2xl border border-neutral-200 bg-white p-7 shadow-sm"
+        >
+          <div>
+            <label
+              htmlFor="adminCode"
+              className="mb-2 block text-sm font-semibold text-neutral-700"
+            >
+              관리자 코드
+            </label>
+
+            <input
+              id="adminCode"
+              type="password"
+              value={adminCode}
+              onChange={(e) => setAdminCode(e.target.value)}
+              placeholder="관리자 코드를 입력하세요"
+              autoComplete="off"
+              disabled={loading}
+              className="w-full rounded-xl border border-neutral-200 bg-white px-4 py-3 text-sm text-neutral-900 outline-none transition placeholder:text-neutral-300 focus:border-[#A77A52] focus:ring-2 focus:ring-[#A77A52]/10 disabled:bg-neutral-50"
+              required
+            />
+          </div>
+
+          {/* 에러 메시지 */}
+          {error && (
+            <div className="mt-4 rounded-xl border border-red-100 bg-red-50 px-4 py-3 text-sm text-red-500">
+              {error}
+            </div>
+          )}
+
+          <button
+            type="submit"
+            disabled={loading}
+            className="mt-6 w-full cursor-pointer rounded-xl bg-[#1F1B18] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#342D28] disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            {loading ? "인증 중..." : "관리자 로그인"}
+          </button>
+        </form>
+
+        {/* 쇼핑몰 이동 */}
+        <div className="mt-5 text-center">
+          <a
+            href="/products"
+            className="text-sm text-neutral-400 transition hover:text-neutral-700"
+          >
+            ← 쇼핑몰로 돌아가기
+          </a>
+        </div>
       </div>
-    </main>
+    </div>
   );
 }

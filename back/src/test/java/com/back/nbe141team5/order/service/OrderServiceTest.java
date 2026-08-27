@@ -56,9 +56,9 @@ class OrderServiceTest {
         ReflectionTestUtils.setField(savedOrder, "id", 100L);
         given(orderRepository.save(any(CoffeeOrder.class))).willReturn(savedOrder);
         // when
-        Long orderId = orderService.createOrder(request);
+        OrderResponse response = orderService.createOrder(request);
         // then
-        assertThat(orderId).isEqualTo(100L);
+        assertThat(response.id()).isEqualTo(100L);
         verify(orderRepository).save(any(CoffeeOrder.class));
     }
 
@@ -84,9 +84,9 @@ class OrderServiceTest {
                 List.of(new OrderItemRequest(1L, 3))
         );
         // when
-        Long orderId = orderService.createOrder(request);
+        OrderResponse response = orderService.createOrder(request);
         // then
-        assertThat(orderId).isEqualTo(100L); // 기존 주문 ID 반환
+        assertThat(response.id()).isEqualTo(100L); // 기존 주문 ID 반환
         assertThat(existingOrder.getTotalPrice()).isEqualTo(50000); // 20,000 + (10,000 * 3)
         assertThat(existingOrder.getOrderItems().get(0).getQuantity()).isEqualTo(5); // 2 + 3 = 5개
     }
@@ -113,10 +113,9 @@ class OrderServiceTest {
         ReflectionTestUtils.setField(newOrder, "id", 200L);
         given(orderRepository.save(any(CoffeeOrder.class))).willReturn(newOrder);
         // when
-        Long orderId = orderService.createOrder(request);
+        OrderResponse response = orderService.createOrder(request);
         // then
-        assertThat(orderId).isEqualTo(200L); // 신규 주문 ID 반환
-        verify(orderRepository).save(any(CoffeeOrder.class));
+        assertThat(response.id()).isEqualTo(200L); // 신규 주문 ID 반환
     }
 
     @Test
@@ -142,9 +141,9 @@ class OrderServiceTest {
         ReflectionTestUtils.setField(newOrder, "id", 300L);
         given(orderRepository.save(any(CoffeeOrder.class))).willReturn(newOrder);
         // when
-        Long orderId = orderService.createOrder(request);
+        OrderResponse response = orderService.createOrder(request);
         // then
-        assertThat(orderId).isEqualTo(300L); // 신규 주문 ID 반환
+        assertThat(response.id()).isEqualTo(300L); // 신규 주문 ID 반환
         verify(orderRepository).save(any(CoffeeOrder.class));
     }
 

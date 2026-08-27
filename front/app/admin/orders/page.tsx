@@ -122,7 +122,7 @@ export default function AdminOrdersPage() {
       } else if (filterMode === "DATE") {
         url = `${ORDERS_API}/today-deliveries?date=${selectedDate}`;
       } else {
-        // 💡 페이징 및 이메일 검색 쿼리 파라미터 적용
+        // 페이징 및 이메일 검색 쿼리 파라미터 적용
         url = `${ORDERS_API}?page=${page}&size=10`;
         if (searchEmail.trim()) {
           url += `&email=${encodeURIComponent(searchEmail.trim())}`;
@@ -133,15 +133,21 @@ export default function AdminOrdersPage() {
         throw new Error("주문 목록을 불러오지 못했습니다.");
       }
       const data = await response.json();
-      // 💡 Page 객체(data.content) 또는 배열 처리
+      // Page 객체(data.content) 또는 배열 처리
       if (data.content && Array.isArray(data.content)) {
         setOrders(data.content);
         setTotalPages(data.totalPages ?? 0);
         setTotalElements(data.totalElements ?? 0);
       } else if (Array.isArray(data)) {
-        setOrders(data);
+        // 오늘/날짜 배송 목록(배열)에서 검색어가 있으면 클라이언트 필터링 적용
+        const filtered = searchEmail.trim()
+          ? data.filter((item: Order) =>
+              item.email.toLowerCase().includes(searchEmail.trim().toLowerCase())
+            )
+          : data;
+        setOrders(filtered);
         setTotalPages(1);
-        setTotalElements(data.length);
+        setTotalElements(filtered.length);
       } else {
         setOrders([]);
         setTotalPages(0);
@@ -252,21 +258,19 @@ export default function AdminOrdersPage() {
             주문 관리
           </h1>
         </div>
-        {/* 📅 날짜별 필터 바 & 이메일 검색창 */}
+        {/* 날짜별 필터 바 & 이메일 검색창 */}
         <div className="flex flex-wrap items-center gap-2 rounded-2xl border border-neutral-200 bg-white p-2 shadow-sm">
-          {/* 🔍 이메일 검색창 추가 */}
-          {filterMode === "ALL" && (
-            <input
-              type="text"
-              value={searchEmail}
-              onChange={(e) => {
-                setSearchEmail(e.target.value);
-                setPage(0);
-              }}
-              placeholder="고객 이메일 검색..."
-              className="rounded-xl border border-neutral-200 bg-[#FAFAF9] px-3.5 py-1.5 text-xs text-neutral-800 placeholder-neutral-400 outline-none focus:border-neutral-900 focus:bg-white transition"
-            />
-          )}
+          {/* 이메일 검색창 (항상 노출) */}
+          <input
+            type="text"
+            value={searchEmail}
+            onChange={(e) => {
+              setSearchEmail(e.target.value);
+              setPage(0);
+            }}
+            placeholder="고객 이메일 검색..."
+            className="rounded-xl border border-neutral-200 bg-[#FAFAF9] px-3.5 py-1.5 text-xs text-neutral-800 placeholder-neutral-400 outline-none transition focus:border-[#A77A52] focus:bg-white focus:ring-2 focus:ring-[#A77A52]/20"
+          />
           <button
             type="button"
             onClick={() => {

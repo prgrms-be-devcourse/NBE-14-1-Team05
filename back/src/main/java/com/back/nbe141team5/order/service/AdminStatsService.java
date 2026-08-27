@@ -85,16 +85,31 @@ public class AdminStatsService {
                 .toList();
     }
 
-    // 최근 6개월간 월별 매출 집계
+    // 전체 월별 매출 집계 (가장 오래된 주문 월부터 현재 월까지 전체 집계, 최소 6개월 보장)
     private List<MonthlySalesResponse> calculateMonthlySales(List<CoffeeOrder> activeOrders) {
         DateTimeFormatter ymFormatter = DateTimeFormatter.ofPattern("yyyy-MM");
         Map<String, List<CoffeeOrder>> byMonth = activeOrders.stream()
                 .collect(Collectors.groupingBy(o -> o.getOrderDate().format(ymFormatter)));
 
         LocalDate today = LocalDate.now();
-        return LongStream.rangeClosed(0, 5)
+        LocalDate minDate = activeOrders.stream()
+                .map(o -> o.getOrderDate().toLocalDate())
+                .min(LocalDate::compareTo)
+                .orElse(today.minusMonths(5));
+
+        LocalDate sixMonthsAgo = today.minusMonths(5).withDayOfMonth(1);
+        LocalDate startDate = minDate.withDayOfMonth(1).isBefore(sixMonthsAgo)
+                ? minDate.withDayOfMonth(1)
+                : sixMonthsAgo;
+
+        long totalMonths = java.time.temporal.ChronoUnit.MONTHS.between(
+                java.time.YearMonth.from(startDate),
+                java.time.YearMonth.from(today)
+        );
+
+        return LongStream.rangeClosed(0, totalMonths)
                 .mapToObj(i -> {
-                    String ym = today.minusMonths(5 - i).format(ymFormatter);
+                    String ym = startDate.plusMonths(i).format(ymFormatter);
                     List<CoffeeOrder> monthOrders = byMonth.getOrDefault(ym, Collections.emptyList());
                     long revenue = monthOrders.stream().mapToLong(CoffeeOrder::getTotalPrice).sum();
                     return new MonthlySalesResponse(ym, monthOrders.size(), revenue);

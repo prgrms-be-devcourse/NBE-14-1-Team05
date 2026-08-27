@@ -28,14 +28,13 @@ public interface OrderRepository extends JpaRepository<CoffeeOrder, Long> {
     // 특정 사용자의 모든 주문 내역 조회 (주문일시 내림차순 정렬)
     List<CoffeeOrder> findAllByEmailOrderByOrderDateDesc(String email);
 
-    // [관리자] 주문 다중 조건 검색 & 페이징 (이메일 부분검색, 주문상태 필터, 주문일자 범위)
+    // [관리자] 주문 다중 조건 검색, 페이징 및 동적 정렬 (이메일 부분검색, 주문상태 필터, 주문일자 범위)
     @Query("""
                 SELECT o FROM CoffeeOrder o
                 WHERE (:email IS NULL OR :email = '' OR LOWER(o.email) LIKE LOWER(CONCAT('%', :email, '%')))
                   AND (:status IS NULL OR o.status = :status)
                   AND (:startDate IS NULL OR o.orderDate >= :startDate)
                   AND (:endDate IS NULL OR o.orderDate <= :endDate)
-                ORDER BY o.orderDate DESC
             """)
     Page<CoffeeOrder> searchOrders(
             @Param("email") String email,

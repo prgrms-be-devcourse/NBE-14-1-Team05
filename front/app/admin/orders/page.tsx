@@ -25,6 +25,20 @@ function formatDateTime(value: string | null) {
   return date.toLocaleString("ko-KR");
 }
 
+function formatDeliveryDate(value: string | null) {
+  if (!value) {
+    return "-";
+  }
+
+  const date = new Date(value);
+
+  if (Number.isNaN(date.getTime())) {
+    return value;
+  }
+
+  return date.toLocaleDateString("ko-KR");
+}
+
 function statusLabel(status: OrderStatus) {
   return ORDER_STATUS_LABEL[status] ?? status;
 }
@@ -63,6 +77,18 @@ export default function AdminOrdersPage() {
     filterParam === "TODAY" ? "TODAY" : "ALL",
   );
 
+  // 주문 상태 필터 ("ALL" 또는 개별 상태)
+  const [selectedStatus, setSelectedStatus] = useState<"ALL" | OrderStatus>("ALL");
+
+  // 상단 카드용 전체 상태별 카운트 상태
+  const [statusCounts, setStatusCounts] = useState({
+    total: 0,
+    ordered: 0,
+    shipped: 0,
+    delivered: 0,
+    cancelled: 0,
+  });
+
   const [selectedDate, setSelectedDate] = useState<string>(
     new Date().toISOString().split("T")[0],
   );
@@ -76,6 +102,20 @@ export default function AdminOrdersPage() {
   const [totalPages, setTotalPages] = useState(0);
   const [totalElements, setTotalElements] = useState(0);
   const [searchEmail, setSearchEmail] = useState("");
+
+  // 정렬 상태 (주문일시 또는 결제금액, 기본값: 최신 주문일시 내림차순)
+  const [sortBy, setSortBy] = useState<"orderDate" | "totalPrice">("orderDate");
+  const [sortDir, setSortDir] = useState<"desc" | "asc">("desc");
+
+  const handleSortToggle = (field: "orderDate" | "totalPrice") => {
+    if (sortBy === field) {
+      setSortDir((prev) => (prev === "desc" ? "asc" : "desc"));
+    } else {
+      setSortBy(field);
+      setSortDir("desc");
+    }
+    setPage(0);
+  };
   
   // 커스텀 달력 드롭다운 상태 및 함수
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
@@ -111,7 +151,32 @@ export default function AdminOrdersPage() {
     0,
   ).getDate();
   const todayStr = new Date().toISOString().split("T")[0];
-  // 날짜별/전체 주문 목록 조회
+
+  // 전체 주문 상태별 누적 개수 집계
+  const fetchStatusCounts = async () => {
+    try {
+      const res = await fetch(`${ORDERS_API}?page=0&size=1000`);
+      if (res.ok) {
+        const data = await res.json();
+        const all: Order[] = data.content ?? (Array.isArray(data) ? data : []);
+        setStatusCounts({
+          total: data.totalElements ?? all.length,
+          ordered: all.filter((o) => o.status === "ORDERED").length,
+          shipped: all.filter((o) => o.status === "SHIPPED").length,
+          delivered: all.filter((o) => o.status === "DELIVERED").length,
+          cancelled: all.filter((o) => o.status === "CANCELLED").length,
+        });
+      }
+    } catch (e) {
+      console.error("상태 카운트 조회 실패:", e);
+    }
+  };
+
+  useEffect(() => {
+    fetchStatusCounts();
+  }, []);
+
+  // 이메일 검색, 날짜, 주문 상태, 동적 정렬 복합 조건 주문 목록 조회
   const fetchOrders = async () => {
     setLoading(true);
     setError("");
@@ -122,10 +187,13 @@ export default function AdminOrdersPage() {
       } else if (filterMode === "DATE") {
         url = `${ORDERS_API}/today-deliveries?date=${selectedDate}`;
       } else {
-        // 페이징 및 이메일 검색 쿼리 파라미터 적용
-        url = `${ORDERS_API}?page=${page}&size=10`;
+        // 페이징, 이메일 검색어, 주문 상태, 동적 정렬 복합 파라미터 적용
+        url = `${ORDERS_API}?page=${page}&size=10&sort=${sortBy},${sortDir}`;
         if (searchEmail.trim()) {
           url += `&email=${encodeURIComponent(searchEmail.trim())}`;
+        }
+        if (selectedStatus !== "ALL") {
+          url += `&status=${selectedStatus}`;
         }
       }
       const response = await fetch(url);
@@ -139,12 +207,28 @@ export default function AdminOrdersPage() {
         setTotalPages(data.totalPages ?? 0);
         setTotalElements(data.totalElements ?? 0);
       } else if (Array.isArray(data)) {
-        // 오늘/날짜 배송 목록(배열)에서 검색어가 있으면 클라이언트 필터링 적용
-        const filtered = searchEmail.trim()
-          ? data.filter((item: Order) =>
-              item.email.toLowerCase().includes(searchEmail.trim().toLowerCase())
-            )
-          : data;
+        // 오늘/날짜 배송 목록(배열)에서 이메일, 주문 상태 및 동적 정렬 복합 필터링 적용
+        let filtered = data;
+        if (searchEmail.trim()) {
+          filtered = filtered.filter((item: Order) =>
+            item.email.toLowerCase().includes(searchEmail.trim().toLowerCase())
+          );
+        }
+        if (selectedStatus !== "ALL") {
+          filtered = filtered.filter((item: Order) => item.status === selectedStatus);
+        }
+        filtered.sort((a: Order, b: Order) => {
+          if (sortBy === "orderDate") {
+            const timeA = new Date(a.orderDate).getTime();
+            const timeB = new Date(b.orderDate).getTime();
+            return sortDir === "desc" ? timeB - timeA : timeA - timeB;
+          } else if (sortBy === "totalPrice") {
+            return sortDir === "desc"
+              ? b.totalPrice - a.totalPrice
+              : a.totalPrice - b.totalPrice;
+          }
+          return 0;
+        });
         setOrders(filtered);
         setTotalPages(1);
         setTotalElements(filtered.length);
@@ -163,7 +247,7 @@ export default function AdminOrdersPage() {
   };
   useEffect(() => {
     fetchOrders();
-  }, [filterMode, selectedDate, page, searchEmail]);
+  }, [filterMode, selectedDate, page, searchEmail, selectedStatus, sortBy, sortDir]);
 
   // 주문 상세 조회
   const handleSelectOrder = async (id: number) => {
@@ -223,6 +307,9 @@ export default function AdminOrdersPage() {
       if (selectedOrder?.id === orderId) {
         setSelectedOrder(updatedOrder);
       }
+
+      // 전체 상태별 집계 갱신
+      fetchStatusCounts();
 
       alert(`주문 상태가 [${label}](으)로 변경되었습니다.`);
     } catch (error) {
@@ -432,107 +519,132 @@ export default function AdminOrdersPage() {
         </div>
       </div>
 
-      {/* 주문 현황 */}
+      {/* 주문 상태 필터 카드 (클릭 시 해당 상태만 복합 검색) */}
       <section className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5">
-        {/* 전체 주문 */}
-        <div className="rounded-2xl border border-neutral-200 bg-white p-5 shadow-sm">
+        {/* 1. 전체 주문 */}
+        <div
+          onClick={() => {
+            setSelectedStatus("ALL");
+            setPage(0);
+          }}
+          className={`cursor-pointer rounded-2xl border p-5 shadow-sm transition duration-200 hover:-translate-y-0.5 hover:shadow-md ${
+            selectedStatus === "ALL"
+              ? "border-neutral-900 bg-[#FAFAF9] ring-2 ring-neutral-900"
+              : "border-neutral-200 bg-white"
+          }`}
+        >
           <div className="flex items-start justify-between">
             <div>
               <p className="text-sm font-medium text-neutral-500">전체 주문</p>
-
               <p className="mt-3 text-2xl font-bold text-neutral-900">
-                {orders.length}
-
-                <span className="ml-1 text-sm font-medium text-neutral-400">
-                  건
-                </span>
+                {statusCounts.total}
+                <span className="ml-1 text-sm font-medium text-neutral-400">건</span>
               </p>
             </div>
-
             <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-neutral-100 text-neutral-600">
               ▤
             </div>
           </div>
         </div>
 
-        {/* 주문 완료 */}
-        <div className="rounded-2xl border border-neutral-200 bg-white p-5 shadow-sm">
+        {/* 2. 주문 완료 */}
+        <div
+          onClick={() => {
+            setSelectedStatus("ORDERED");
+            setPage(0);
+          }}
+          className={`cursor-pointer rounded-2xl border p-5 shadow-sm transition duration-200 hover:-translate-y-0.5 hover:shadow-md ${
+            selectedStatus === "ORDERED"
+              ? "border-[#8A684A] bg-[#F5EEE7]/60 ring-2 ring-[#8A684A]"
+              : "border-neutral-200 bg-white"
+          }`}
+        >
           <div className="flex items-start justify-between">
             <div>
               <p className="text-sm font-medium text-neutral-500">주문 완료</p>
-
               <p className="mt-3 text-2xl font-bold text-neutral-900">
-                {orderedCount}
-
-                <span className="ml-1 text-sm font-medium text-neutral-400">
-                  건
-                </span>
+                {statusCounts.ordered}
+                <span className="ml-1 text-sm font-medium text-neutral-400">건</span>
               </p>
             </div>
-
             <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#F5EEE7] text-[#8A684A]">
               ✓
             </div>
           </div>
         </div>
 
-        {/* 배송 중 */}
-        <div className="rounded-2xl border border-neutral-200 bg-white p-5 shadow-sm">
+        {/* 3. 배송 중 */}
+        <div
+          onClick={() => {
+            setSelectedStatus("SHIPPED");
+            setPage(0);
+          }}
+          className={`cursor-pointer rounded-2xl border p-5 shadow-sm transition duration-200 hover:-translate-y-0.5 hover:shadow-md ${
+            selectedStatus === "SHIPPED"
+              ? "border-blue-500 bg-blue-50/60 ring-2 ring-blue-500"
+              : "border-neutral-200 bg-white"
+          }`}
+        >
           <div className="flex items-start justify-between">
             <div>
               <p className="text-sm font-medium text-neutral-500">배송 중</p>
-
               <p className="mt-3 text-2xl font-bold text-neutral-900">
-                {shippedCount}
-
-                <span className="ml-1 text-sm font-medium text-neutral-400">
-                  건
-                </span>
+                {statusCounts.shipped}
+                <span className="ml-1 text-sm font-medium text-neutral-400">건</span>
               </p>
             </div>
-
             <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-50 text-blue-600">
               →
             </div>
           </div>
         </div>
 
-        {/* 배송 완료 */}
-        <div className="rounded-2xl border border-neutral-200 bg-white p-5 shadow-sm">
+        {/* 4. 배송 완료 */}
+        <div
+          onClick={() => {
+            setSelectedStatus("DELIVERED");
+            setPage(0);
+          }}
+          className={`cursor-pointer rounded-2xl border p-5 shadow-sm transition duration-200 hover:-translate-y-0.5 hover:shadow-md ${
+            selectedStatus === "DELIVERED"
+              ? "border-emerald-500 bg-emerald-50/60 ring-2 ring-emerald-500"
+              : "border-neutral-200 bg-white"
+          }`}
+        >
           <div className="flex items-start justify-between">
             <div>
               <p className="text-sm font-medium text-neutral-500">배송 완료</p>
-
               <p className="mt-3 text-2xl font-bold text-neutral-900">
-                {deliveredCount}
-
-                <span className="ml-1 text-sm font-medium text-neutral-400">
-                  건
-                </span>
+                {statusCounts.delivered}
+                <span className="ml-1 text-sm font-medium text-neutral-400">건</span>
               </p>
             </div>
-
             <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600">
               ✓
             </div>
           </div>
         </div>
 
-        {/* 주문 취소 */}
-        <div className="rounded-2xl border border-neutral-200 bg-white p-5 shadow-sm">
+        {/* 5. 주문 취소 */}
+        <div
+          onClick={() => {
+            setSelectedStatus("CANCELLED");
+            setPage(0);
+          }}
+          className={`cursor-pointer rounded-2xl border p-5 shadow-sm transition duration-200 hover:-translate-y-0.5 hover:shadow-md ${
+            selectedStatus === "CANCELLED"
+              ? "border-red-500 bg-red-50/60 ring-2 ring-red-500"
+              : "border-neutral-200 bg-white"
+          }`}
+        >
           <div className="flex items-start justify-between">
             <div>
               <p className="text-sm font-medium text-neutral-500">주문 취소</p>
-
               <p className="mt-3 text-2xl font-bold text-neutral-900">
-                {cancelledCount}
-
-                <span className="ml-1 text-sm font-medium text-neutral-400">
-                  건
-                </span>
+                {statusCounts.cancelled}
+                <span className="ml-1 text-sm font-medium text-neutral-400">건</span>
               </p>
             </div>
-
             <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-red-50 text-red-600">
               ✕
             </div>
@@ -567,12 +679,65 @@ export default function AdminOrdersPage() {
                   번호
                 </th>
                 <th className="px-6 py-4">이메일</th>
-                <th className="w-44 px-4 py-4 whitespace-nowrap">주문일시</th>
+                <th className="w-36 px-4 py-4 whitespace-nowrap">배송일자</th>
+                <th
+                  onClick={() => handleSortToggle("orderDate")}
+                  className="w-48 cursor-pointer select-none px-4 py-4 whitespace-nowrap transition hover:bg-neutral-100/80"
+                  title="클릭하여 주문일시 정렬 변경"
+                >
+                  <div className="flex items-center gap-1.5">
+                    <span
+                      className={
+                        sortBy === "orderDate"
+                          ? "font-bold text-neutral-900"
+                          : "text-neutral-500"
+                      }
+                    >
+                      주문일시
+                    </span>
+                    <span className="text-xs">
+                      {sortBy === "orderDate" ? (
+                        sortDir === "desc" ? (
+                          <span className="font-bold text-[#8A684A]">↓</span>
+                        ) : (
+                          <span className="font-bold text-[#8A684A]">↑</span>
+                        )
+                      ) : (
+                        <span className="text-neutral-300">↕</span>
+                      )}
+                    </span>
+                  </div>
+                </th>
                 <th className="w-28 px-3 py-4 text-center whitespace-nowrap">
                   상태
                 </th>
-                <th className="w-36 px-4 py-4 text-right whitespace-nowrap">
-                  결제금액
+                <th
+                  onClick={() => handleSortToggle("totalPrice")}
+                  className="w-36 cursor-pointer select-none px-4 py-4 text-right whitespace-nowrap transition hover:bg-neutral-100/80"
+                  title="클릭하여 결제금액 정렬 변경"
+                >
+                  <div className="flex items-center justify-end gap-1.5">
+                    <span
+                      className={
+                        sortBy === "totalPrice"
+                          ? "font-bold text-neutral-900"
+                          : "text-neutral-500"
+                      }
+                    >
+                      결제금액
+                    </span>
+                    <span className="text-xs">
+                      {sortBy === "totalPrice" ? (
+                        sortDir === "desc" ? (
+                          <span className="font-bold text-[#8A684A]">↓</span>
+                        ) : (
+                          <span className="font-bold text-[#8A684A]">↑</span>
+                        )
+                      ) : (
+                        <span className="text-neutral-300">↕</span>
+                      )}
+                    </span>
+                  </div>
                 </th>
                 <th className="w-28 px-3 py-4 text-center whitespace-nowrap">
                   상태 변경
@@ -594,7 +759,7 @@ export default function AdminOrdersPage() {
                     }`}
                   >
                     <td className="px-3 py-5 text-center text-sm text-neutral-400">
-                      {index + 1}
+                      {page * 10 + index + 1}
                     </td>
 
                     <td className="px-6 py-5 truncate">
@@ -610,6 +775,10 @@ export default function AdminOrdersPage() {
                           주문 #{order.id}
                         </p>
                       </div>
+                    </td>
+
+                    <td className="px-4 py-5 text-sm text-neutral-500 whitespace-nowrap">
+                      {formatDeliveryDate(order.deliveryDate)}
                     </td>
 
                     <td className="px-4 py-5 text-sm text-neutral-500 whitespace-nowrap">
@@ -686,7 +855,7 @@ export default function AdminOrdersPage() {
                   {/* 🚀 누른 버튼 바로 아래에 펼쳐지는 상세 정보 아코디언 행 */}
                   {selectedOrder?.id === order.id && (
                     <tr className="border-t border-b border-neutral-200 bg-[#FAF9F7]">
-                      <td colSpan={7} className="p-8">
+                      <td colSpan={8} className="p-8">
                         {detailLoading ? (
                           <div className="py-8 text-center text-sm text-neutral-400">
                             주문 상세를 불러오는 중입니다.
@@ -878,7 +1047,7 @@ export default function AdminOrdersPage() {
 
               {orders.length === 0 && !error && (
                 <tr>
-                  <td colSpan={7} className="px-6 py-16 text-center">
+                  <td colSpan={8} className="px-6 py-16 text-center">
                     <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-xl bg-neutral-100 text-neutral-300">
                       ▤
                     </div>

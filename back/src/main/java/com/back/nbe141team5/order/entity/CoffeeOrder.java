@@ -39,17 +39,9 @@ public class CoffeeOrder extends BaseEntity {
     @OneToMany(mappedBy = "coffeeOrder", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<OrderItem> orderItems = new ArrayList<>();
 
-    public CoffeeOrder(String email, String address, String postcode, Integer totalPrice, LocalDateTime orderDate, OrderStatus status) {
-        this.email = email;
-        this.address = address;
-        this.postcode = postcode;
-        this.totalPrice = totalPrice;
-        this.orderDate = orderDate;
-        this.status = status;
-    }
-
     // deliveryDate 를 포함하는 생성자 추가
     public CoffeeOrder(String email, String address, String postcode, Integer totalPrice, LocalDateTime orderDate, OrderStatus status, LocalDateTime deliveryDate) {
+        validatePostcode(postcode);
         this.email = email;
         this.address = address;
         this.postcode = postcode;
@@ -122,7 +114,15 @@ public class CoffeeOrder extends BaseEntity {
 
     // 배송지 및 우편번호 수정
     public void updateDeliveryInfo(String address, String postcode) {
+        validatePostcode(postcode);
         this.address = address;
         this.postcode = postcode;
+    }
+
+    // 우편번호 5자리 이하의 숫자 유효성 검증 메서드
+    private void validatePostcode(String postcode) {
+        if (postcode == null || !postcode.matches("^\\d{5}$")) {
+            throw new IllegalArgumentException("우편번호는 5자리의 숫자여야 합니다.");
+        }
     }
 }

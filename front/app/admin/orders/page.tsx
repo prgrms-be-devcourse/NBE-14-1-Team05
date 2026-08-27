@@ -1,6 +1,7 @@
 "use client";
 
 import { Fragment, useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
 
 import {
   ORDER_STATUS_LABEL,
@@ -54,8 +55,14 @@ function statusBadge(status: OrderStatus) {
 export default function AdminOrdersPage() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
+
+  const searchParams = useSearchParams();
+  const filterParam = searchParams.get("filter");
   // 필터 상태 ("ALL": 전체, "TODAY": 오늘 배송, "DATE": 날짜 선택)
-  const [filterMode, setFilterMode] = useState<"ALL" | "TODAY" | "DATE">("ALL");
+  const [filterMode, setFilterMode] = useState<"ALL" | "TODAY" | "DATE">(
+    filterParam === "TODAY" ? "TODAY" : "ALL",
+  );
+
   const [selectedDate, setSelectedDate] = useState<string>(
     new Date().toISOString().split("T")[0],
   );
@@ -509,22 +516,16 @@ export default function AdminOrdersPage() {
         </div>
 
         <div className="overflow-x-auto">
-          <table className="w-full table-fixed">
+          <table className="w-full min-w-[900px] table-fixed">
             <thead>
               <tr className="bg-[#FAFAF9] text-left text-xs font-semibold text-neutral-500">
-                <th className="w-14 px-3 py-4 text-center">번호</th>
-
-                <th className="px-6 py-4">주문자</th>
-
-                <th className="w-44 px-4 py-4">주문일시</th>
-
-                <th className="w-28 px-3 py-4 text-center">상태</th>
-
-                <th className="w-36 px-4 py-4 text-right">결제금액</th>
-
-                <th className="w-28 px-3 py-4 text-center">상태 변경</th>
-
-                <th className="w-24 px-3 py-4 text-center">상세</th>
+                <th className="w-14 px-3 py-4 text-center whitespace-nowrap">번호</th>
+                <th className="px-6 py-4">이메일</th>
+                <th className="w-44 px-4 py-4 whitespace-nowrap">주문일시</th>
+                <th className="w-28 px-3 py-4 text-center whitespace-nowrap">상태</th>
+                <th className="w-36 px-4 py-4 text-right whitespace-nowrap">결제금액</th>
+                <th className="w-28 px-3 py-4 text-center whitespace-nowrap">상태 변경</th>
+                <th className="w-24 px-3 py-4 text-center whitespace-nowrap">상세</th>
               </tr>
             </thead>
 

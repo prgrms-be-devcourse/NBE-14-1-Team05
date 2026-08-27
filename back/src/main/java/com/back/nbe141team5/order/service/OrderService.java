@@ -1,10 +1,10 @@
 package com.back.nbe141team5.order.service;
 
 import com.back.nbe141team5.mail.EmailService;
-import com.back.nbe141team5.order.dto.OrderItemRequest;
-import com.back.nbe141team5.order.dto.OrderCreateRequest;
-import com.back.nbe141team5.order.dto.OrderResponse;
 import com.back.nbe141team5.order.dto.OrderAddressUpdateRequest;
+import com.back.nbe141team5.order.dto.OrderCreateRequest;
+import com.back.nbe141team5.order.dto.OrderItemRequest;
+import com.back.nbe141team5.order.dto.OrderResponse;
 import com.back.nbe141team5.order.entity.CoffeeOrder;
 import com.back.nbe141team5.order.entity.OrderItem;
 import com.back.nbe141team5.order.entity.OrderStatus;
@@ -14,11 +14,14 @@ import com.back.nbe141team5.product.exception.ProductNotFoundException;
 import com.back.nbe141team5.product.repository.ProductRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -58,37 +61,37 @@ public class OrderService {
 
         StringBuilder content = new StringBuilder(
                 """
-                <html>
-                <body style="
-                    font-family: Arial, sans-serif;
-                    background-color: #f5f5f5;
-                    padding: 30px;
-                ">
-    
-                    <div style="
-                        max-width: 600px;
-                        margin: 0 auto;
-                        background-color: white;
-                        padding: 30px;
-                        border-radius: 10px;
-                    ">
-    
-                        <h2 style="margin-bottom: 10px;">
-                            결제가 완료되었습니다.
-                        </h2>
-    
-                        <p style="color: #666;">
-                            주문번호: %d
-                        </p>
-    
-                        <hr style="
-                            border: none;
-                            border-top: 1px solid #ddd;
-                            margin: 25px 0;
+                        <html>
+                        <body style="
+                            font-family: Arial, sans-serif;
+                            background-color: #f5f5f5;
+                            padding: 30px;
                         ">
-    
-                        <h3>주문 내역</h3>
-                """.formatted(coffeeOrder.getId())
+                        
+                            <div style="
+                                max-width: 600px;
+                                margin: 0 auto;
+                                background-color: white;
+                                padding: 30px;
+                                border-radius: 10px;
+                            ">
+                        
+                                <h2 style="margin-bottom: 10px;">
+                                    결제가 완료되었습니다.
+                                </h2>
+                        
+                                <p style="color: #666;">
+                                    주문번호: %d
+                                </p>
+                        
+                                <hr style="
+                                    border: none;
+                                    border-top: 1px solid #ddd;
+                                    margin: 25px 0;
+                                ">
+                        
+                                <h3>주문 내역</h3>
+                        """.formatted(coffeeOrder.getId())
         );
 
         for (OrderItem item : coffeeOrder.getOrderItems()) {
@@ -98,26 +101,26 @@ public class OrderService {
 
             content.append(
                     """
-                    <div style="
-                        padding: 15px 0;
-                        border-bottom: 1px solid #eee;
-                    ">
-                        <p style="margin: 5px 0;">
-                            <strong>%s</strong>
-                        </p>
-    
-                        <p style="
-                            margin: 5px 0;
-                            color: #666;
-                        ">
-                            수량: %d개
-                        </p>
-    
-                        <p style="margin: 5px 0;">
-                            금액: %,d원
-                        </p>
-                    </div>
-                    """.formatted(
+                            <div style="
+                                padding: 15px 0;
+                                border-bottom: 1px solid #eee;
+                            ">
+                                <p style="margin: 5px 0;">
+                                    <strong>%s</strong>
+                                </p>
+                            
+                                <p style="
+                                    margin: 5px 0;
+                                    color: #666;
+                                ">
+                                    수량: %d개
+                                </p>
+                            
+                                <p style="margin: 5px 0;">
+                                    금액: %,d원
+                                </p>
+                            </div>
+                            """.formatted(
                             item.getProductName(),
                             item.getQuantity(),
                             itemPrice
@@ -127,45 +130,45 @@ public class OrderService {
 
         content.append(
                 """
-                    <div style="
-                        margin-top: 25px;
-                        padding-top: 20px;
-                        text-align: right;
-                    ">
-                        <p style="
-                            font-size: 18px;
-                            margin: 0;
-                        ">
-                            총 결제금액
-                        </p>
-    
-                        <p style="
-                            font-size: 24px;
-                            font-weight: bold;
-                            margin-top: 8px;
-                        ">
-                            %,d원
-                        </p>
-                    </div>
-    
-                    <hr style="
-                        border: none;
-                        border-top: 1px solid #ddd;
-                        margin: 25px 0;
-                    ">
-    
-                    <p style="
-                        text-align: center;
-                        color: #777;
-                        font-size: 14px;
-                    ">
-                        이용해주셔서 감사합니다.
-                    </p>
-    
-                </div>
-                </body>
-                </html>
-                """.formatted(coffeeOrder.getTotalPrice())
+                            <div style="
+                                margin-top: 25px;
+                                padding-top: 20px;
+                                text-align: right;
+                            ">
+                                <p style="
+                                    font-size: 18px;
+                                    margin: 0;
+                                ">
+                                    총 결제금액
+                                </p>
+                        
+                                <p style="
+                                    font-size: 24px;
+                                    font-weight: bold;
+                                    margin-top: 8px;
+                                ">
+                                    %,d원
+                                </p>
+                            </div>
+                        
+                            <hr style="
+                                border: none;
+                                border-top: 1px solid #ddd;
+                                margin: 25px 0;
+                            ">
+                        
+                            <p style="
+                                text-align: center;
+                                color: #777;
+                                font-size: 14px;
+                            ">
+                                이용해주셔서 감사합니다.
+                            </p>
+                        
+                        </div>
+                        </body>
+                        </html>
+                        """.formatted(coffeeOrder.getTotalPrice())
         );
 
         return content.toString();
@@ -292,6 +295,7 @@ public class OrderService {
         order.updateDeliveryInfo(request.address(), request.postcode());
         return OrderResponse.from(order);
     }
+
     // 주문 목록 조회 (이메일 조건부 검색 지원)
     public List<OrderResponse> getOrders(String email) {
         if (email != null && !email.isBlank()) {
@@ -302,5 +306,20 @@ public class OrderService {
         return orderRepository.findAll().stream()
                 .map(OrderResponse::from)
                 .toList();
+    }
+
+    @Transactional(readOnly = true)
+    public Page<OrderResponse> getAdminOrders(
+            String email,
+            OrderStatus status,
+            LocalDate startDate,
+            LocalDate endDate,
+            Pageable pageable
+    ) {
+        LocalDateTime startDateTime = (startDate != null) ? startDate.atStartOfDay() : null;
+        LocalDateTime endDateTime = (endDate != null) ? endDate.atTime(LocalTime.MAX) : null;
+
+        return orderRepository.searchOrders(email, status, startDateTime, endDateTime, pageable)
+                .map(OrderResponse::from);
     }
 }

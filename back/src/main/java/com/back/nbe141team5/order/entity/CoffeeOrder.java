@@ -101,7 +101,7 @@ public class CoffeeOrder extends BaseEntity {
             // ORDERED 상태일 때: 배송중(SHIPPED) 뿐만 아니라 주문취소(CANCELLED)도 가능하도록 추가
             case ORDERED -> newStatus == OrderStatus.SHIPPED || newStatus == OrderStatus.CANCELLED;
             // SHIPPED 상태일 때: 배송완료(DELIVERED) 뿐만 아니라 주문취소(CANCELLED)도 가능하도록 추가
-            case SHIPPED -> newStatus == OrderStatus.DELIVERED || newStatus == OrderStatus.CANCELLED;
+            case SHIPPED -> newStatus == OrderStatus.DELIVERED;
             // 이미 배송완료(DELIVERED)되었거나 취소(CANCELLED)된 주문은 더 이상 변경 불가
             case DELIVERED, CANCELLED -> false;
         };
@@ -114,6 +114,14 @@ public class CoffeeOrder extends BaseEntity {
 
     // 배송지 및 우편번호 수정
     public void updateDeliveryInfo(String address, String postcode) {
+
+        if(this.status != OrderStatus.ORDERED) {
+            throw new IllegalArgumentException("주문 완료 상태일 때만 배송지를 변경할 수 있습니다.");
+        }
+        if (address == null || address.isBlank()) {
+            throw new IllegalArgumentException("배송지 주소는 필수입니다.");
+        }
+
         validatePostcode(postcode);
         this.address = address;
         this.postcode = postcode;

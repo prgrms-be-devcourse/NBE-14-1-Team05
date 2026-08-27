@@ -56,8 +56,9 @@ export default function AdminPage() {
           throw new Error("주문 조회 실패");
         }
 
-        const orderData: Order[] = await orderResponse.json();
-        setOrders(orderData);
+        const orderData = await orderResponse.json();
+        const orderList = orderData.content ?? (Array.isArray(orderData) ? orderData : []);
+        setOrders(orderList);
       } catch (error) {
         console.error("대시보드 데이터 조회 실패:", error);
       } finally {

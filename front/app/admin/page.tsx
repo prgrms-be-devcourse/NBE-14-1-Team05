@@ -10,6 +10,7 @@ import RecentOrdersTable from "@/components/admin/dashboard/RecentOrdersTable";
 
 export default function AdminPage() {
   const [productCount, setProductCount] = useState(0);
+  const [productPrices, setProductPrices] = useState<Record<string, number>>({});
   const [orders, setOrders] = useState<Order[]>([]);
   const [stats, setStats] = useState<AdminStats | null>(null);
   const [salesTab, setSalesTab] = useState<SalesTab>("ALL");
@@ -25,11 +26,21 @@ export default function AdminPage() {
   useEffect(() => {
     async function fetchDashboardData() {
       try {
-        // 등록 상품 수 조회
-        const productResponse = await fetch("/api/admin/products");
+        // 등록 상품 목록 및 단가 맵 조회
+        const productResponse = await fetch("/api/admin/products?size=1000&filter=ALL");
         if (productResponse.ok) {
-          const products = await productResponse.json();
-          setProductCount(products.totalElements ?? 0);
+          const productData = await productResponse.json();
+          const productList =
+            productData.content ?? (Array.isArray(productData) ? productData : []);
+          setProductCount(productData.totalElements ?? productList.length);
+          
+          const priceMap: Record<string, number> = {};
+          productList.forEach((p: { name: string; price: number }) => {
+            if (p.name && typeof p.price === "number") {
+              priceMap[p.name] = p.price;
+            }
+          });
+          setProductPrices(priceMap);
         }
 
         // 최근 주문 목록 조회 (페이징 객체 대응)
@@ -94,10 +105,6 @@ export default function AdminPage() {
 
   // 최근 7일 일별 매출 목록 (최신 일자가 맨 위로 오도록 역순 정렬)
   const displayDailySales = [...(stats?.dailySales ?? [])].reverse();
-  const maxDailyRev =
-    displayDailySales.length > 0
-      ? Math.max(...displayDailySales.map((d) => d.revenue), 1)
-      : 1;
 
   // 연도별 매출 집계 (전체 탭용, 최신 연도가 맨 위로 오도록 내림차순 정렬)
   const yearlySalesMap = new Map<string, { orderCount: number; revenue: number }>();
@@ -116,15 +123,8 @@ export default function AdminPage() {
     }))
     .sort((a, b) => b.year.localeCompare(a.year));
 
-  const maxYearlyRev =
-    yearlySales.length > 0 ? Math.max(...yearlySales.map((y) => y.revenue), 1) : 1;
-
   // 최근 6개월 월별 매출 목록 (최신 월이 맨 위로 오도록 역순 정렬)
   const displayMonthlySales = [...(stats?.monthlySales?.slice(-6) ?? [])].reverse();
-  const maxMonthlyRev =
-    displayMonthlySales.length > 0
-      ? Math.max(...displayMonthlySales.map((m) => m.revenue), 1)
-      : 1;
 
   // 선택 일자 집계
   const customActiveOrders = customOrders.filter((o) => o.status !== "CANCELLED");
@@ -136,7 +136,7 @@ export default function AdminPage() {
   const customAov =
     customOrderCount > 0 ? Math.round(customTotalRevenue / customOrderCount) : 0;
 
-  // 선택 일자 판매 상품별 수량 및 매출 집계
+  // 선택 일자 판매 상품별 수량 및 실제 단가 기반 매출 집계
   const productMap = new Map<string, { quantity: number; revenue: number }>();
   customActiveOrders.forEach((o) => {
     o.orderItems?.forEach((item) => {
@@ -145,10 +145,12 @@ export default function AdminPage() {
         revenue: 0,
       };
       existing.quantity += item.quantity;
+      
       const unitPrice =
-        o.totalPrice && o.orderItems.length === 1
+        productPrices[item.productName] ??
+        (o.totalPrice && o.orderItems.length === 1
           ? Math.round(o.totalPrice / item.quantity)
-          : 0;
+          : 0);
       existing.revenue += unitPrice * item.quantity;
       productMap.set(item.productName, existing);
     });
@@ -209,9 +211,6 @@ export default function AdminPage() {
         displayDailySales={displayDailySales}
         yearlySales={yearlySales}
         displayMonthlySales={displayMonthlySales}
-        maxDailyRev={maxDailyRev}
-        maxYearlyRev={maxYearlyRev}
-        maxMonthlyRev={maxMonthlyRev}
         customLoading={customLoading}
         customTotalRevenue={customTotalRevenue}
         customOrderCount={customOrderCount}

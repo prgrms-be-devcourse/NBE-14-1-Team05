@@ -25,6 +25,12 @@ export default function DaySalesDetail({
   customAov,
   customProductList,
 }: DaySalesDetailProps) {
+  // 당일 판매 상품 매출 총합 (기여도 비중 분모)
+  const totalItemRev =
+    customProductList.reduce((sum, item) => sum + item.revenue, 0) ||
+    customTotalRevenue ||
+    1;
+
   return (
     <div className="p-6 space-y-6">
       {/* 3대 핵심 KPI 통계 카드 */}
@@ -80,7 +86,7 @@ export default function DaySalesDetail({
               ) : customProductList.length > 0 ? (
                 customProductList.map((item) => {
                   const ratio = Math.round(
-                    (item.revenue / (customTotalRevenue || 1)) * 100,
+                    (item.revenue / totalItemRev) * 100,
                   );
                   return (
                     <tr
@@ -116,7 +122,7 @@ export default function DaySalesDetail({
                 <tr>
                   <td
                     colSpan={4}
-                    className="py-8 text-center text-sm text-neutral-400"
+                    className="px-6 py-8 text-center text-sm text-neutral-400"
                   >
                     해당 일자에 판매된 데이터가 없습니다.
                   </td>

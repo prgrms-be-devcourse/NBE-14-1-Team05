@@ -27,9 +27,6 @@ interface SalesTimelineSectionProps {
   displayDailySales: DailySales[];
   yearlySales: YearlySalesItem[];
   displayMonthlySales: MonthlySales[];
-  maxDailyRev: number;
-  maxYearlyRev: number;
-  maxMonthlyRev: number;
   customLoading: boolean;
   customTotalRevenue: number;
   customOrderCount: number;
@@ -45,9 +42,6 @@ export default function SalesTimelineSection({
   displayDailySales,
   yearlySales,
   displayMonthlySales,
-  maxDailyRev,
-  maxYearlyRev,
-  maxMonthlyRev,
   customLoading,
   customTotalRevenue,
   customOrderCount,
@@ -55,6 +49,14 @@ export default function SalesTimelineSection({
   customProductList,
 }: SalesTimelineSectionProps) {
   const todayStr = new Date().toISOString().split("T")[0];
+
+  // 각 탭별 전체 매출 합계 (매출 비중 % 분모)
+  const totalDailyRev =
+    displayDailySales.reduce((sum, d) => sum + d.revenue, 0) || 1;
+  const totalYearlyRev =
+    yearlySales.reduce((sum, y) => sum + y.revenue, 0) || 1;
+  const totalMonthlyRev =
+    displayMonthlySales.reduce((sum, m) => sum + m.revenue, 0) || 1;
 
   return (
     <section
@@ -144,7 +146,9 @@ export default function SalesTimelineSection({
             <tbody>
               {displayDailySales && displayDailySales.length > 0 ? (
                 displayDailySales.map((item) => {
-                  const ratio = Math.round((item.revenue / maxDailyRev) * 100);
+                  const ratio = Math.round(
+                    (item.revenue / totalDailyRev) * 100,
+                  );
                   return (
                     <tr
                       key={item.date}
@@ -201,7 +205,7 @@ export default function SalesTimelineSection({
               {yearlySales && yearlySales.length > 0 ? (
                 yearlySales.map((item) => {
                   const ratio = Math.round(
-                    (item.revenue / maxYearlyRev) * 100,
+                    (item.revenue / totalYearlyRev) * 100,
                   );
                   return (
                     <tr
@@ -259,7 +263,7 @@ export default function SalesTimelineSection({
               {displayMonthlySales && displayMonthlySales.length > 0 ? (
                 displayMonthlySales.map((item) => {
                   const ratio = Math.round(
-                    (item.revenue / maxMonthlyRev) * 100,
+                    (item.revenue / totalMonthlyRev) * 100,
                   );
                   return (
                     <tr

@@ -1,5 +1,6 @@
 package com.back.nbe141team5.order.service;
 
+import com.back.nbe141team5.mail.EmailService;
 import com.back.nbe141team5.order.dto.OrderItemRequest;
 import com.back.nbe141team5.order.dto.OrderCreateRequest;
 import com.back.nbe141team5.order.dto.OrderResponse;
@@ -12,6 +13,7 @@ import com.back.nbe141team5.product.entity.Product;
 import com.back.nbe141team5.product.exception.ProductNotFoundException;
 import com.back.nbe141team5.product.repository.ProductRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -20,6 +22,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
@@ -27,6 +30,7 @@ public class OrderService {
 
     private final OrderRepository orderRepository;
     private final ProductRepository productRepository;
+    private final EmailService emailService;
 
     // [메인 진입점] 주문 생성 요청 처리
     @Transactional
@@ -36,7 +40,135 @@ public class OrderService {
         CoffeeOrder savedOrder = tryMergeWithExistingOrder(request, now)
                 .orElseGet(() -> createNewOrder(request, now));
 
+
+        // 메일 전송 실패가 주문 생성 자체를 실패시키지 않도록 여기서 흡수하고 로그만 남긴다.
+        try {
+            String subject = "Grids & Circles #" + savedOrder.getId() + " Order Completed";
+            String content = createReceipt(savedOrder);
+            emailService.sendEmail(request.email(), subject, content);
+        } catch (Exception e) {
+            log.error("주문 완료 메일 전송 실패. orderId={}, email={}", savedOrder.getId(), request.email(), e);
+        }
+
         return OrderResponse.from(savedOrder);
+    }
+
+    // 주문 정보를 조회해 주문 완료 안내 메일 본문(HTML)을 생성한다.
+    private String createReceipt(CoffeeOrder coffeeOrder) {
+
+        StringBuilder content = new StringBuilder(
+                """
+                <html>
+                <body style="
+                    font-family: Arial, sans-serif;
+                    background-color: #f5f5f5;
+                    padding: 30px;
+                ">
+    
+                    <div style="
+                        max-width: 600px;
+                        margin: 0 auto;
+                        background-color: white;
+                        padding: 30px;
+                        border-radius: 10px;
+                    ">
+    
+                        <h2 style="margin-bottom: 10px;">
+                            결제가 완료되었습니다.
+                        </h2>
+    
+                        <p style="color: #666;">
+                            주문번호: %d
+                        </p>
+    
+                        <hr style="
+                            border: none;
+                            border-top: 1px solid #ddd;
+                            margin: 25px 0;
+                        ">
+    
+                        <h3>주문 내역</h3>
+                """.formatted(coffeeOrder.getId())
+        );
+
+        for (OrderItem item : coffeeOrder.getOrderItems()) {
+
+            int itemPrice =
+                    item.getQuantity() * item.getProduct().getPrice();
+
+            content.append(
+                    """
+                    <div style="
+                        padding: 15px 0;
+                        border-bottom: 1px solid #eee;
+                    ">
+                        <p style="margin: 5px 0;">
+                            <strong>%s</strong>
+                        </p>
+    
+                        <p style="
+                            margin: 5px 0;
+                            color: #666;
+                        ">
+                            수량: %d개
+                        </p>
+    
+                        <p style="margin: 5px 0;">
+                            금액: %,d원
+                        </p>
+                    </div>
+                    """.formatted(
+                            item.getProductName(),
+                            item.getQuantity(),
+                            itemPrice
+                    )
+            );
+        }
+
+        content.append(
+                """
+                    <div style="
+                        margin-top: 25px;
+                        padding-top: 20px;
+                        text-align: right;
+                    ">
+                        <p style="
+                            font-size: 18px;
+                            margin: 0;
+                        ">
+                            총 결제금액
+                        </p>
+    
+                        <p style="
+                            font-size: 24px;
+                            font-weight: bold;
+                            margin-top: 8px;
+                        ">
+                            %,d원
+                        </p>
+                    </div>
+    
+                    <hr style="
+                        border: none;
+                        border-top: 1px solid #ddd;
+                        margin: 25px 0;
+                    ">
+    
+                    <p style="
+                        text-align: center;
+                        color: #777;
+                        font-size: 14px;
+                    ">
+                        이용해주셔서 감사합니다.
+                    </p>
+    
+                </div>
+                </body>
+                </html>
+                """.formatted(coffeeOrder.getTotalPrice())
+        );
+
+        return content.toString();
     }
 
     // 합배송 (주문 병합) 함수 -> CoffeeOrder 객체 반환

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import {
     ORDER_STATUS_LABEL,
     type Order,
@@ -28,6 +29,18 @@ function statusBadge(status: OrderStatus) {
             return `${base} bg-red-50 text-red-600`;
         default:
             return `${base} bg-neutral-100 text-neutral-600`;
+    }
+}
+
+// 상태별 안내 문구 분기 (CANCELLED는 문구 미노출)
+function getOrderActionMessage(status: OrderStatus) {
+    switch (status) {
+        case "DELIVERED":
+            return "배송이 완료되었습니다.";
+        case "SHIPPED":
+            return "배송 중인 상품은 수정/취소가 불가합니다.";
+        default:
+            return null;
     }
 }
 
@@ -120,10 +133,21 @@ export default function CustomerOrdersPage() {
         setIsEditModalOpen(true);
     };
 
+    // 우편번호 숫자만 5자리 제한 핸들러
+    const handlePostcodeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const numericOnly = e.target.value.replace(/\D/g, "").slice(0, 5);
+        setEditPostcode(numericOnly);
+    };
+
     // 배송지 수정 제출 (PATCH /api/v1/orders/{id})
     const handleEditSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!editingOrder) return;
+
+        if (editPostcode.length !== 5) {
+            alert("우편번호 5자리를 정확히 입력해주세요.");
+            return;
+        }
 
         try {
             const response = await fetch(`${ORDERS_API}/${editingOrder.id}`, {
@@ -150,6 +174,16 @@ export default function CustomerOrdersPage() {
 
     return (
         <div className="mx-auto max-w-4xl px-4 py-10 space-y-8">
+            {/* 상품 목록 바로가기 네비게이션 */}
+            <div className="flex items-center justify-between border-b border-neutral-100 pb-4">
+                <Link
+                    href="/products"
+                    className="text-xs font-semibold text-neutral-500 hover:text-neutral-900 transition flex items-center gap-1"
+                >
+                    ← 상품 목록으로 돌아가기
+                </Link>
+            </div>
+
             {/* 상단 타이틀 */}
             <div className="text-center space-y-2">
                 <p className="text-xs font-semibold tracking-widest text-[#9A7655]">ORDER LOOKUP</p>
@@ -217,8 +251,8 @@ export default function CustomerOrdersPage() {
                                         <div className="flex items-center gap-3">
                                             <span className="text-xs text-neutral-400">{formatDateTime(order.orderDate)}</span>
                                             <span className={statusBadge(order.status)}>
-                        {ORDER_STATUS_LABEL[order.status] ?? order.status}
-                      </span>
+                                                {ORDER_STATUS_LABEL[order.status] ?? order.status}
+                                            </span>
                                         </div>
                                     </div>
 
@@ -249,12 +283,13 @@ export default function CustomerOrdersPage() {
                                         </div>
                                     </div>
 
+                                    {/* 총 결제금액 및 조건부 버튼/문구 (2번 반영) */}
                                     <div className="flex flex-wrap items-center justify-between gap-3 border-t border-neutral-100 pt-4">
                                         <div className="text-sm">
                                             <span className="text-neutral-500">총 결제금액: </span>
                                             <span className="font-bold text-neutral-900">
-                        {order.totalPrice.toLocaleString("ko-KR")}원
-                      </span>
+                                                {order.totalPrice.toLocaleString("ko-KR")}원
+                                            </span>
                                         </div>
 
                                         {order.status === "ORDERED" ? (
@@ -275,9 +310,11 @@ export default function CustomerOrdersPage() {
                                                 </button>
                                             </div>
                                         ) : (
-                                            <span className="text-xs text-neutral-400">
-                        {order.status === "CANCELLED" ? "취소된 주문입니다." : "배송이 시작되어 수정/취소가 불가합니다."}
-                      </span>
+                                            getOrderActionMessage(order.status) && (
+                                                <span className="text-xs font-medium text-neutral-400">
+                                                    {getOrderActionMessage(order.status)}
+                                                </span>
+                                            )
                                         )}
                                     </div>
                                 </div>
@@ -300,14 +337,16 @@ export default function CustomerOrdersPage() {
                             <div className="space-y-4 p-6">
                                 <div>
                                     <label htmlFor="postcode" className="mb-1.5 block text-xs font-semibold text-neutral-700">
-                                        우편번호 <span className="text-[#A77A52]">*</span>
+                                        우편번호 (5자리 숫자) <span className="text-[#A77A52]">*</span>
                                     </label>
                                     <input
                                         id="postcode"
                                         type="text"
+                                        inputMode="numeric"
+                                        maxLength={5}
                                         value={editPostcode}
-                                        onChange={(e) => setEditPostcode(e.target.value)}
-                                        placeholder="우편번호 5자리"
+                                        onChange={handlePostcodeChange}
+                                        placeholder="12345"
                                         className="w-full rounded-xl border border-neutral-200 bg-[#FAFAF9] px-4 py-2.5 text-sm text-neutral-900 outline-none focus:border-[#A77A52] focus:bg-white"
                                         required
                                     />

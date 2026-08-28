@@ -50,13 +50,15 @@ class OrderServiceTest {
         );
         Product product = createProduct(1L, "콜롬비아 원두", 10000);
         given(productRepository.findById(1L)).willReturn(Optional.of(product));
-        given(orderRepository.findTopByEmailAndStatusOrderByOrderDateDesc(email, OrderStatus.ORDERED))
+        given(orderRepository.findTopByEmailAndAddressAndPostcodeAndStatusOrderByOrderDateDesc(email, address, postcode, OrderStatus.ORDERED))
                 .willReturn(Optional.empty());
         CoffeeOrder savedOrder = new CoffeeOrder(email, address, postcode, 20000, LocalDateTime.now(), OrderStatus.ORDERED, LocalDateTime.now().plusDays(1));
         ReflectionTestUtils.setField(savedOrder, "id", 100L);
         given(orderRepository.save(any(CoffeeOrder.class))).willReturn(savedOrder);
+
         // when
         OrderResponse response = orderService.createOrder(request);
+
         // then
         assertThat(response.id()).isEqualTo(100L);
         verify(orderRepository).save(any(CoffeeOrder.class));
@@ -69,22 +71,27 @@ class OrderServiceTest {
         String email = "test@example.com";
         String address = "서울시 강남구";
         String postcode = "12345";
-        LocalDateTime sameGroupOrderTime = LocalDateTime.now(); // 같은 주기 시간
+        LocalDateTime sameGroupOrderTime = LocalDateTime.now();
         Product product = createProduct(1L, "콜롬비아 원두", 10000);
+
         // 기존 주문 (100번 주문, 이미 콜롬비아 원두 2개 담김, 총 20,000원)
         CoffeeOrder existingOrder = new CoffeeOrder(email, address, postcode, 20000, sameGroupOrderTime, OrderStatus.ORDERED, sameGroupOrderTime.plusDays(1));
         ReflectionTestUtils.setField(existingOrder, "id", 100L);
         existingOrder.addOrderItem(new OrderItem(product, 2));
-        given(orderRepository.findTopByEmailAndStatusOrderByOrderDateDesc(email, OrderStatus.ORDERED))
+
+        given(orderRepository.findTopByEmailAndAddressAndPostcodeAndStatusOrderByOrderDateDesc(email, address, postcode, OrderStatus.ORDERED))
                 .willReturn(Optional.of(existingOrder));
         given(productRepository.findById(1L)).willReturn(Optional.of(product));
+
         // 신규 주문 요청 (동일 상품 3개 추가 주문)
         OrderCreateRequest request = new OrderCreateRequest(
                 email, address, postcode,
                 List.of(new OrderItemRequest(1L, 3))
         );
+
         // when
         OrderResponse response = orderService.createOrder(request);
+
         // then
         assertThat(response.id()).isEqualTo(100L); // 기존 주문 ID 반환
         assertThat(existingOrder.getTotalPrice()).isEqualTo(50000); // 20,000 + (10,000 * 3)
@@ -92,30 +99,68 @@ class OrderServiceTest {
     }
 
     @Test
-    @DisplayName("동일 배송 그룹이지만 배송지가 다른 경우 합배송되지 않고 신규 주문으로 생성된다.")
+    @DisplayName("동일 배송 그룹이지만 배송지가 다른 경우 해당 배송지의 기존 주문이 없으면 신규 주문으로 생성된다.")
     void createNewOrder_whenDifferentAddress() {
         // given
         String email = "test@example.com";
-        LocalDateTime sameGroupOrderTime = LocalDateTime.now();
-        // 기존 주문 (서울시 강남구)
-        CoffeeOrder existingOrder = new CoffeeOrder(email, "서울시 강남구", "12345", 20000, sameGroupOrderTime, OrderStatus.ORDERED, sameGroupOrderTime.plusDays(1));
-        ReflectionTestUtils.setField(existingOrder, "id", 100L);
-        given(orderRepository.findTopByEmailAndStatusOrderByOrderDateDesc(email, OrderStatus.ORDERED))
-                .willReturn(Optional.of(existingOrder));
+        String busanAddress = "부산시 해운대구";
+        String busanPostcode = "54321";
+
+        // 부산 배송지의 미배송 주문 조회 시 없음
+        given(orderRepository.findTopByEmailAndAddressAndPostcodeAndStatusOrderByOrderDateDesc(email, busanAddress, busanPostcode, OrderStatus.ORDERED))
+                .willReturn(Optional.empty());
         Product product = createProduct(1L, "콜롬비아 원두", 10000);
         given(productRepository.findById(1L)).willReturn(Optional.of(product));
-        // 신규 주문 요청 (부산시 해운대구 - 다른 배송지)
+
+        // 신규 주문 요청 (부산시 해운대구)
         OrderCreateRequest request = new OrderCreateRequest(
-                email, "부산시 해운대구", "54321",
+                email, busanAddress, busanPostcode,
                 List.of(new OrderItemRequest(1L, 1))
         );
-        CoffeeOrder newOrder = new CoffeeOrder(email, "부산시 해운대구", "54321", 10000, LocalDateTime.now(), OrderStatus.ORDERED, LocalDateTime.now().plusDays(1));
+        CoffeeOrder newOrder = new CoffeeOrder(email, busanAddress, busanPostcode, 10000, LocalDateTime.now(), OrderStatus.ORDERED, LocalDateTime.now().plusDays(1));
         ReflectionTestUtils.setField(newOrder, "id", 200L);
         given(orderRepository.save(any(CoffeeOrder.class))).willReturn(newOrder);
+
         // when
         OrderResponse response = orderService.createOrder(request);
+
         // then
         assertThat(response.id()).isEqualTo(200L); // 신규 주문 ID 반환
+    }
+
+    @Test
+    @DisplayName("배송지를 번갈아 주문(서울->부산->서울)하더라도 동일 배송지의 기존 주문이 존재하면 정확히 병합된다.")
+    void mergeOrder_alternatingAddress_success() {
+        // given
+        String email = "test@example.com";
+        String seoulAddress = "서울시 강남구";
+        String seoulPostcode = "12345";
+        LocalDateTime sameGroupOrderTime = LocalDateTime.now();
+
+        Product product = createProduct(1L, "콜롬비아 원두", 10000);
+        // 기존 서울 배송지 주문 (100번 주문)
+        CoffeeOrder seoulOrder = new CoffeeOrder(email, seoulAddress, seoulPostcode, 20000, sameGroupOrderTime, OrderStatus.ORDERED, sameGroupOrderTime.plusDays(1));
+        ReflectionTestUtils.setField(seoulOrder, "id", 100L);
+        seoulOrder.addOrderItem(new OrderItem(product, 2));
+
+        // 이후 부산 배송지 주문(200번)이 들어왔더라도, 다시 서울 배송지로 주문 시 서울 주문(100번)이 반환됨
+        given(orderRepository.findTopByEmailAndAddressAndPostcodeAndStatusOrderByOrderDateDesc(email, seoulAddress, seoulPostcode, OrderStatus.ORDERED))
+                .willReturn(Optional.of(seoulOrder));
+        given(productRepository.findById(1L)).willReturn(Optional.of(product));
+
+        // 서울 배송지 재주문 요청 (1개 추가)
+        OrderCreateRequest request = new OrderCreateRequest(
+                email, seoulAddress, seoulPostcode,
+                List.of(new OrderItemRequest(1L, 1))
+        );
+
+        // when
+        OrderResponse response = orderService.createOrder(request);
+
+        // then
+        assertThat(response.id()).isEqualTo(100L); // 기존 서울 주문서(#100)로 정상 병합
+        assertThat(seoulOrder.getTotalPrice()).isEqualTo(30000); // 20,000 + 10,000
+        assertThat(seoulOrder.getOrderItems().get(0).getQuantity()).isEqualTo(3); // 2 + 1 = 3개
     }
 
     @Test
@@ -129,10 +174,12 @@ class OrderServiceTest {
         LocalDateTime pastOrderTime = LocalDateTime.now().minusDays(2);
         CoffeeOrder existingOrder = new CoffeeOrder(email, address, postcode, 20000, pastOrderTime, OrderStatus.ORDERED, pastOrderTime.plusDays(1));
         ReflectionTestUtils.setField(existingOrder, "id", 100L);
-        given(orderRepository.findTopByEmailAndStatusOrderByOrderDateDesc(email, OrderStatus.ORDERED))
+
+        given(orderRepository.findTopByEmailAndAddressAndPostcodeAndStatusOrderByOrderDateDesc(email, address, postcode, OrderStatus.ORDERED))
                 .willReturn(Optional.of(existingOrder));
         Product product = createProduct(1L, "콜롬비아 원두", 10000);
         given(productRepository.findById(1L)).willReturn(Optional.of(product));
+
         OrderCreateRequest request = new OrderCreateRequest(
                 email, address, postcode,
                 List.of(new OrderItemRequest(1L, 1))
@@ -140,8 +187,10 @@ class OrderServiceTest {
         CoffeeOrder newOrder = new CoffeeOrder(email, address, postcode, 10000, LocalDateTime.now(), OrderStatus.ORDERED, LocalDateTime.now().plusDays(1));
         ReflectionTestUtils.setField(newOrder, "id", 300L);
         given(orderRepository.save(any(CoffeeOrder.class))).willReturn(newOrder);
+
         // when
         OrderResponse response = orderService.createOrder(request);
+
         // then
         assertThat(response.id()).isEqualTo(300L); // 신규 주문 ID 반환
         verify(orderRepository).save(any(CoffeeOrder.class));

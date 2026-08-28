@@ -16,6 +16,10 @@ import java.util.Optional;
 @Repository
 public interface OrderRepository extends JpaRepository<CoffeeOrder, Long> {
 
+    // 특정 사용자의 이메일, 배송지(주소+우편번호), 미배송 상태에 해당하는 가장 최근 주문 조회
+    Optional<CoffeeOrder> findTopByEmailAndAddressAndPostcodeAndStatusOrderByOrderDateDesc(
+            String email, String address, String postcode, OrderStatus status);
+    
     // 특정 사용자의 이메일 미배송 상태에 해당하는 가장 최근 주문 조회
     Optional<CoffeeOrder> findTopByEmailAndStatusOrderByOrderDateDesc(String email, OrderStatus status);
 
@@ -43,7 +47,7 @@ public interface OrderRepository extends JpaRepository<CoffeeOrder, Long> {
             @Param("endDate") LocalDateTime endDate,
             Pageable pageable
     );
-    
+
     // 취소되지 않은 주문의 총 누적 매출 합계
     @Query("SELECT COALESCE(SUM(o.totalPrice), 0) FROM CoffeeOrder o WHERE o.status != 'CANCELLED'")
     long getTotalRevenue();

@@ -50,7 +50,7 @@ public interface OrderRepository extends JpaRepository<CoffeeOrder, Long> {
 
     // 판매 수량 기준 인기 상품 TOP 3 (취소 제외)
     @Query("""
-                SELECT oi.productName, COALESCE(SUM(oi.quantity), 0), COALESCE(SUM(oi.quantity * p.price), 0)
+                SELECT oi.productName, COALESCE(SUM(oi.quantity), 0), COALESCE(SUM(oi.quantity * oi.price), 0)
                 FROM OrderItem oi
                 JOIN oi.coffeeOrder o
                 JOIN oi.product p
@@ -62,13 +62,13 @@ public interface OrderRepository extends JpaRepository<CoffeeOrder, Long> {
 
     // 매출액 기준 인기 상품 TOP 3 (취소 제외)
     @Query("""
-                SELECT oi.productName, COALESCE(SUM(oi.quantity), 0), COALESCE(SUM(oi.quantity * p.price), 0)
+                SELECT oi.productName, COALESCE(SUM(oi.quantity), 0), COALESCE(SUM(oi.quantity * oi.price), 0)
                 FROM OrderItem oi
                 JOIN oi.coffeeOrder o
                 JOIN oi.product p
                 WHERE o.status != 'CANCELLED'
                 GROUP BY oi.productName
-                ORDER BY SUM(oi.quantity * p.price) DESC
+                ORDER BY SUM(oi.quantity * oi.price) DESC
             """)
     List<Object[]> findTopRevenueProducts(Pageable pageable);
 

@@ -97,7 +97,7 @@ public class OrderService {
         for (OrderItem item : coffeeOrder.getOrderItems()) {
 
             int itemPrice =
-                    item.getQuantity() * item.getProduct().getPrice();
+                    item.getQuantity() * item.getPrice();
 
             content.append(
                     """

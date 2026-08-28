@@ -2,9 +2,11 @@ package com.back.nbe141team5.order.repository;
 
 import com.back.nbe141team5.order.entity.CoffeeOrder;
 import com.back.nbe141team5.order.entity.OrderStatus;
+import jakarta.persistence.LockModeType;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -21,6 +23,7 @@ public interface OrderRepository extends JpaRepository<CoffeeOrder, Long> {
             String email, String address, String postcode, OrderStatus status);
     
     // 특정 사용자의 이메일 미배송 상태에 해당하는 가장 최근 주문 조회
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
     Optional<CoffeeOrder> findTopByEmailAndStatusOrderByOrderDateDesc(String email, OrderStatus status);
 
     // 특정 배송 예정일 (deliveryDate) 기준 주문 목록 조회 (주문시간 오름차순 정렬)

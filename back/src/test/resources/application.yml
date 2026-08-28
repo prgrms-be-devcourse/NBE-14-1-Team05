@@ -9,7 +9,9 @@ spring:
       ddl-auto: create-drop
     show-sql: false
 
-  # 테스트 환경에서 실제 SMTP 연결을 시도하지 않도록 설정 추가
+  # 테스트 환경 메일 설정
   mail:
     host: localhost
-    port: 25
+    port: 3025
+    username: test
+    password: test

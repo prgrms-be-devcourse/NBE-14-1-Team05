@@ -10,9 +10,15 @@ export async function GET(request: Request) {
 
     const page = searchParams.get("page") ?? "0";
     const filter = searchParams.get("filter") ?? "ACTIVE";
+    const search = searchParams.get("search") ?? "";
+
+    let backendUrl = `${API_BASE_URL}/api/v1/admin/products?page=${page}&filter=${filter}`;
+    if (search.trim()) {
+      backendUrl += `&search=${encodeURIComponent(search.trim())}`;
+    }
 
     const response = await fetch(
-      `${API_BASE_URL}/api/v1/admin/products?page=${page}&filter=${filter}`,
+      backendUrl,
       {
         cache: "no-store",
       }

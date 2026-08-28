@@ -42,6 +42,7 @@ export default function AdminOrdersPage() {
   const [totalPages, setTotalPages] = useState(0);
   const [totalElements, setTotalElements] = useState(0);
   const [searchEmail, setSearchEmail] = useState("");
+  const [searchProduct, setSearchProduct] = useState("");
 
   // 정렬 상태
   const [sortBy, setSortBy] = useState<"orderDate" | "totalPrice">("orderDate");
@@ -81,7 +82,7 @@ export default function AdminOrdersPage() {
     fetchStatusCounts();
   }, []);
 
-  // 이메일 검색, 날짜, 주문 상태, 동적 정렬 복합 조건 주문 목록 조회
+  // 이메일 검색, 상품명 검색, 날짜, 주문 상태, 동적 정렬 복합 조건 주문 목록 조회
   const fetchOrders = async () => {
     setLoading(true);
     setError("");
@@ -95,6 +96,9 @@ export default function AdminOrdersPage() {
         url = `${ORDERS_API}?page=${page}&size=10&sort=${sortBy},${sortDir}`;
         if (searchEmail.trim()) {
           url += `&email=${encodeURIComponent(searchEmail.trim())}`;
+        }
+        if (searchProduct.trim()) {
+          url += `&productName=${encodeURIComponent(searchProduct.trim())}`;
         }
         if (selectedStatus !== "ALL") {
           url += `&status=${selectedStatus}`;
@@ -114,6 +118,14 @@ export default function AdminOrdersPage() {
         if (searchEmail.trim()) {
           filtered = filtered.filter((item: Order) =>
             item.email.toLowerCase().includes(searchEmail.trim().toLowerCase())
+          );
+        }
+        if (searchProduct.trim()) {
+          const productQuery = searchProduct.trim().toLowerCase();
+          filtered = filtered.filter((item: Order) =>
+            item.orderItems?.some((oi) =>
+              oi.productName.toLowerCase().includes(productQuery)
+            )
           );
         }
         if (selectedStatus !== "ALL") {
@@ -150,7 +162,16 @@ export default function AdminOrdersPage() {
 
   useEffect(() => {
     fetchOrders();
-  }, [filterMode, selectedDate, page, searchEmail, selectedStatus, sortBy, sortDir]);
+  }, [
+    filterMode,
+    selectedDate,
+    page,
+    searchEmail,
+    searchProduct,
+    selectedStatus,
+    sortBy,
+    sortDir,
+  ]);
 
   // 주문 상세 조회
   const handleSelectOrder = async (id: number) => {
@@ -231,6 +252,11 @@ export default function AdminOrdersPage() {
             setSearchEmail(email);
             setPage(0);
           }}
+          searchProduct={searchProduct}
+          onSearchProductChange={(product) => {
+            setSearchProduct(product);
+            setPage(0);
+          }}
           filterMode={filterMode}
           onFilterModeChange={(mode) => {
             setFilterMode(mode);
@@ -239,6 +265,13 @@ export default function AdminOrdersPage() {
           selectedDate={selectedDate}
           onSelectDate={(date) => {
             setSelectedDate(date);
+            setPage(0);
+          }}
+          onResetFilters={() => {
+            setSearchEmail("");
+            setSearchProduct("");
+            setFilterMode("ALL");
+            setSelectedStatus("ALL");
             setPage(0);
           }}
         />

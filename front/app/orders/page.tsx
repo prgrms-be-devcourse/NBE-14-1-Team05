@@ -86,7 +86,8 @@ export default function CustomerOrdersPage() {
                 body: JSON.stringify({ email }),
             });
             if (!response.ok) {
-                throw new Error("인증번호 전송에 실패했습니다.");
+                setError("인증번호 전송 중 오류가 발생했습니다. 이메일 주소를 확인해주세요.");
+                return;
             }
             setCodeInput("");
             setStep("code");
@@ -119,7 +120,8 @@ export default function CustomerOrdersPage() {
                 body: JSON.stringify({ email, code }),
             });
             if (!response.ok) {
-                throw new Error("인증번호 검증에 실패했습니다.");
+                setError("인증번호가 일치하지 않거나 만료되었습니다. 다시 시도해주세요.");
+                return;
             }
             setVerifiedEmail(email);
             await fetchOrders();
@@ -152,7 +154,9 @@ export default function CustomerOrdersPage() {
                 credentials: "include",
             });
             if (!response.ok) {
-                throw new Error("주문 내역을 불러오지 못했습니다.");
+                setError("주문 내역을 불러오는 중 오류가 발생했습니다.");
+                setOrders([]);
+                return;
             }
             const data: Order[] = await response.json();
             setOrders(Array.isArray(data) ? data : []);
@@ -191,7 +195,8 @@ export default function CustomerOrdersPage() {
             });
 
             if (!response.ok) {
-                throw new Error("주문 취소에 실패했습니다.");
+                alert("주문 취소 처리 중 오류가 발생했습니다. (배송 준비 중인 주문은 취소할 수 없습니다.)");
+                return;
             }
 
             alert("주문이 정상적으로 취소되었습니다.");
@@ -238,7 +243,8 @@ export default function CustomerOrdersPage() {
             });
 
             if (!response.ok) {
-                throw new Error("배송지 수정에 실패했습니다.");
+                alert("배송지 수정 처리 중 오류가 발생했습니다.");
+                return;
             }
 
             alert("배송지 정보가 수정되었습니다.");

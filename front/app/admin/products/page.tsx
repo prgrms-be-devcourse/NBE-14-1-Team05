@@ -37,6 +37,7 @@ export default function AdminProductsPage() {
 
   const [filter, setFilter] =
     useState<ProductFilter>("ACTIVE");
+  const [search, setSearch] = useState("");
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -47,8 +48,13 @@ export default function AdminProductsPage() {
       setLoading(true);
       setError("");
 
+      let url = `/api/admin/products?page=${page}&filter=${filter}`;
+      if (search.trim()) {
+        url += `&search=${encodeURIComponent(search.trim())}`;
+      }
+
       const response = await fetch(
-        `/api/admin/products?page=${page}&filter=${filter}`,
+        url,
         {
           cache: "no-store",
         }
@@ -79,7 +85,7 @@ export default function AdminProductsPage() {
     } finally {
       setLoading(false);
     }
-  }, [page, filter]);
+  }, [page, filter, search]);
 
   useEffect(() => {
     fetchProducts();
@@ -303,100 +309,130 @@ export default function AdminProductsPage() {
           </div>
         </div>
 
-        {/* 필터 */}
-        <div className="flex gap-1 border-y border-neutral-100 px-6 pt-2">
-          {/* 판매중 */}
-          <button
-            type="button"
-            onClick={() =>
-              handleFilterChange("ACTIVE")
-            }
-            className={`relative cursor-pointer px-4 py-3 text-sm font-medium transition ${
-              filter === "ACTIVE"
-                ? "text-neutral-900"
-                : "text-neutral-400 hover:text-neutral-700"
-            }`}
-          >
-            <span className="flex items-center gap-2">
-              판매중
+        {/* 필터 탭 & 검색창 */}
+        <div className="flex flex-col gap-3 border-y border-neutral-100 px-6 py-2 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex gap-1">
+            {/* 판매중 */}
+            <button
+              type="button"
+              onClick={() =>
+                handleFilterChange("ACTIVE")
+              }
+              className={`relative cursor-pointer px-4 py-3 text-sm font-medium transition ${
+                filter === "ACTIVE"
+                  ? "text-neutral-900"
+                  : "text-neutral-400 hover:text-neutral-700"
+              }`}
+            >
+              <span className="flex items-center gap-2">
+                판매중
 
-              <span
-                className={`rounded-full px-2 py-0.5 text-xs ${
-                  filter === "ACTIVE"
-                    ? "bg-emerald-50 text-emerald-600"
-                    : "bg-neutral-100 text-neutral-400"
-                }`}
-              >
-                {activeCount}
+                <span
+                  className={`rounded-full px-2 py-0.5 text-xs ${
+                    filter === "ACTIVE"
+                      ? "bg-emerald-50 text-emerald-600"
+                      : "bg-neutral-100 text-neutral-400"
+                  }`}
+                >
+                  {activeCount}
+                </span>
               </span>
-            </span>
 
-            {filter === "ACTIVE" && (
-              <span className="absolute bottom-0 left-0 h-0.5 w-full bg-[#1F1B18]" />
-            )}
-          </button>
+              {filter === "ACTIVE" && (
+                <span className="absolute bottom-0 left-0 h-0.5 w-full bg-[#1F1B18]" />
+              )}
+            </button>
 
-          {/* 판매중단 */}
-          <button
-            type="button"
-            onClick={() =>
-              handleFilterChange("INACTIVE")
-            }
-            className={`relative cursor-pointer px-4 py-3 text-sm font-medium transition ${
-              filter === "INACTIVE"
-                ? "text-neutral-900"
-                : "text-neutral-400 hover:text-neutral-700"
-            }`}
-          >
-            <span className="flex items-center gap-2">
-              판매중단
+            {/* 판매중단 */}
+            <button
+              type="button"
+              onClick={() =>
+                handleFilterChange("INACTIVE")
+              }
+              className={`relative cursor-pointer px-4 py-3 text-sm font-medium transition ${
+                filter === "INACTIVE"
+                  ? "text-neutral-900"
+                  : "text-neutral-400 hover:text-neutral-700"
+              }`}
+            >
+              <span className="flex items-center gap-2">
+                판매중단
 
-              <span
-                className={`rounded-full px-2 py-0.5 text-xs ${
-                  filter === "INACTIVE"
-                    ? "bg-red-50 text-red-500"
-                    : "bg-neutral-100 text-neutral-400"
-                }`}
-              >
-                {inactiveCount}
+                <span
+                  className={`rounded-full px-2 py-0.5 text-xs ${
+                    filter === "INACTIVE"
+                      ? "bg-red-50 text-red-500"
+                      : "bg-neutral-100 text-neutral-400"
+                  }`}
+                >
+                  {inactiveCount}
+                </span>
               </span>
-            </span>
 
-            {filter === "INACTIVE" && (
-              <span className="absolute bottom-0 left-0 h-0.5 w-full bg-[#1F1B18]" />
-            )}
-          </button>
+              {filter === "INACTIVE" && (
+                <span className="absolute bottom-0 left-0 h-0.5 w-full bg-[#1F1B18]" />
+              )}
+            </button>
 
-          {/* 전체 */}
-          <button
-            type="button"
-            onClick={() =>
-              handleFilterChange("ALL")
-            }
-            className={`relative cursor-pointer px-4 py-3 text-sm font-medium transition ${
-              filter === "ALL"
-                ? "text-neutral-900"
-                : "text-neutral-400 hover:text-neutral-700"
-            }`}
-          >
-            <span className="flex items-center gap-2">
-              전체
+            {/* 전체 */}
+            <button
+              type="button"
+              onClick={() =>
+                handleFilterChange("ALL")
+              }
+              className={`relative cursor-pointer px-4 py-3 text-sm font-medium transition ${
+                filter === "ALL"
+                  ? "text-neutral-900"
+                  : "text-neutral-400 hover:text-neutral-700"
+              }`}
+            >
+              <span className="flex items-center gap-2">
+                전체
 
-              <span
-                className={`rounded-full px-2 py-0.5 text-xs ${
-                  filter === "ALL"
-                    ? "bg-neutral-200 text-neutral-700"
-                    : "bg-neutral-100 text-neutral-400"
-                }`}
-              >
-                {allCount}
+                <span
+                  className={`rounded-full px-2 py-0.5 text-xs ${
+                    filter === "ALL"
+                      ? "bg-neutral-200 text-neutral-700"
+                      : "bg-neutral-100 text-neutral-400"
+                  }`}
+                >
+                  {allCount}
+                </span>
               </span>
-            </span>
 
-            {filter === "ALL" && (
-              <span className="absolute bottom-0 left-0 h-0.5 w-full bg-[#1F1B18]" />
-            )}
-          </button>
+              {filter === "ALL" && (
+                <span className="absolute bottom-0 left-0 h-0.5 w-full bg-[#1F1B18]" />
+              )}
+            </button>
+          </div>
+
+          {/* 상품명 검색창 */}
+          <div className="flex items-center gap-2 pb-1 sm:pb-0">
+            <div className="relative">
+              <input
+                type="text"
+                value={search}
+                onChange={(e) => {
+                  setSearch(e.target.value);
+                  setPage(0);
+                }}
+                placeholder="상품명 검색..."
+                className="w-48 rounded-xl border border-neutral-200 bg-[#FAFAF9] px-3.5 py-1.5 text-xs text-neutral-800 placeholder-neutral-400 outline-none transition focus:border-[#A77A52] focus:bg-white focus:ring-2 focus:ring-[#A77A52]/20 sm:w-56"
+              />
+              {search && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSearch("");
+                    setPage(0);
+                  }}
+                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-xs text-neutral-400 hover:text-neutral-600"
+                >
+                  ✕
+                </button>
+              )}
+            </div>
+          </div>
         </div>
 
         {/* 테이블 */}

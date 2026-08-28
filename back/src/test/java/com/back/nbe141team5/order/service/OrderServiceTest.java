@@ -1,5 +1,6 @@
 package com.back.nbe141team5.order.service;
 
+import com.back.nbe141team5.order.dto.OrderAddressUpdateRequest;
 import com.back.nbe141team5.order.dto.OrderCreateRequest;
 import com.back.nbe141team5.order.dto.OrderItemRequest;
 import com.back.nbe141team5.order.dto.OrderResponse;
@@ -283,5 +284,98 @@ class OrderServiceTest {
         assertThat(responses).hasSize(2);
         assertThat(responses.get(0).email()).isEqualTo("user1@example.com");
         assertThat(responses.get(1).email()).isEqualTo("user2@example.com");
+    }
+
+    @Test
+    @DisplayName("본인의 주문 상세 정보는 정상 조회된다.")
+    void getOrderById_ownerSuccess() {
+        // given
+        CoffeeOrder order = new CoffeeOrder("user@example.com", "서울시 강남구", "12345", 20000, LocalDateTime.now(), OrderStatus.ORDERED, LocalDateTime.now().plusDays(1));
+        ReflectionTestUtils.setField(order, "id", 1L);
+        given(orderRepository.findById(1L)).willReturn(Optional.of(order));
+
+        // when
+        OrderResponse response = orderService.getOrderById(1L, "user@example.com");
+
+        // then
+        assertThat(response.id()).isEqualTo(1L);
+        assertThat(response.email()).isEqualTo("user@example.com");
+    }
+
+    @Test
+    @DisplayName("타인의 주문 상세 정보 조회 시 예외가 발생한다.")
+    void getOrderById_diffOwner_throwsException() {
+        // given
+        CoffeeOrder order = new CoffeeOrder("user@example.com", "서울시 강남구", "12345", 20000, LocalDateTime.now(), OrderStatus.ORDERED, LocalDateTime.now().plusDays(1));
+        ReflectionTestUtils.setField(order, "id", 1L);
+        given(orderRepository.findById(1L)).willReturn(Optional.of(order));
+
+        // when & then
+        assertThatThrownBy(() -> orderService.getOrderById(1L, "attacker@example.com"))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("본인의 주문만");
+    }
+
+    @Test
+    @DisplayName("본인의 주문 배송 정보는 정상 수정된다.")
+    void updateOrder_ownerSuccess() {
+        // given
+        CoffeeOrder order = new CoffeeOrder("user@example.com", "서울시 강남구", "12345", 20000, LocalDateTime.now(), OrderStatus.ORDERED, LocalDateTime.now().plusDays(1));
+        ReflectionTestUtils.setField(order, "id", 1L);
+        given(orderRepository.findById(1L)).willReturn(Optional.of(order));
+
+        OrderAddressUpdateRequest request = new OrderAddressUpdateRequest("서울시 서초구", "54321");
+
+        // when
+        OrderResponse response = orderService.updateOrder(1L, request, "user@example.com");
+
+        // then
+        assertThat(response.address()).isEqualTo("서울시 서초구");
+        assertThat(response.postcode()).isEqualTo("54321");
+    }
+
+    @Test
+    @DisplayName("타인의 주문 배송 정보 수정 시도 시 예외가 발생한다.")
+    void updateOrder_diffOwner_throwsException() {
+        // given
+        CoffeeOrder order = new CoffeeOrder("user@example.com", "서울시 강남구", "12345", 20000, LocalDateTime.now(), OrderStatus.ORDERED, LocalDateTime.now().plusDays(1));
+        ReflectionTestUtils.setField(order, "id", 1L);
+        given(orderRepository.findById(1L)).willReturn(Optional.of(order));
+
+        OrderAddressUpdateRequest request = new OrderAddressUpdateRequest("서울시 서초구", "54321");
+
+        // when & then
+        assertThatThrownBy(() -> orderService.updateOrder(1L, request, "attacker@example.com"))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("본인의 주문만");
+    }
+
+    @Test
+    @DisplayName("본인의 주문은 정상 취소된다.")
+    void cancelOrder_ownerSuccess() {
+        // given
+        CoffeeOrder order = new CoffeeOrder("user@example.com", "서울시 강남구", "12345", 20000, LocalDateTime.now(), OrderStatus.ORDERED, LocalDateTime.now().plusDays(1));
+        ReflectionTestUtils.setField(order, "id", 1L);
+        given(orderRepository.findById(1L)).willReturn(Optional.of(order));
+
+        // when
+        OrderResponse response = orderService.cancelOrder(1L, "user@example.com");
+
+        // then
+        assertThat(response.status()).isEqualTo(OrderStatus.CANCELLED);
+    }
+
+    @Test
+    @DisplayName("타인의 주문 취소 시도 시 예외가 발생한다.")
+    void cancelOrder_diffOwner_throwsException() {
+        // given
+        CoffeeOrder order = new CoffeeOrder("user@example.com", "서울시 강남구", "12345", 20000, LocalDateTime.now(), OrderStatus.ORDERED, LocalDateTime.now().plusDays(1));
+        ReflectionTestUtils.setField(order, "id", 1L);
+        given(orderRepository.findById(1L)).willReturn(Optional.of(order));
+
+        // when & then
+        assertThatThrownBy(() -> orderService.cancelOrder(1L, "attacker@example.com"))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("본인의 주문만");
     }
 }

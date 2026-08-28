@@ -239,10 +239,18 @@ public class OrderService {
                 .toList();
     }
 
-    // 개별 주문 상세 조회
+    // 개별 주문 상세 조회 (관리자용 - 소유자 제한 없음)
     public OrderResponse getOrderById(Long id) {
         CoffeeOrder order = orderRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 주문입니다. ID: " + id)); // OrderNotFoundException 만들면 수정예정
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 주문입니다. ID: " + id));
+        return OrderResponse.from(order);
+    }
+
+    // 개별 주문 상세 조회 (사용자용 - 본인 주문 검증)
+    public OrderResponse getOrderById(Long id, String email) {
+        CoffeeOrder order = orderRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 주문입니다. ID: " + id));
+        validateOrderOwner(order, email);
         return OrderResponse.from(order);
     }
 
@@ -265,12 +273,13 @@ public class OrderService {
                 .toList();
     }
 
-
-    // [주문 취소]
+    // [주문 취소] (사용자용 - 본인 주문 검증)
     @Transactional
-    public OrderResponse cancelOrder(Long id) {
+    public OrderResponse cancelOrder(Long id, String email) {
         CoffeeOrder order = orderRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 주문입니다. ID: " + id));
+
+        validateOrderOwner(order, email);
 
         // 배송 시작 전(ORDERED 상태)일 때만 취소 가능
         if (order.getStatus() != OrderStatus.ORDERED) {
@@ -281,11 +290,13 @@ public class OrderService {
         return OrderResponse.from(order);
     }
 
-    // [주문 배송지 수정]
+    // [주문 배송지 수정] (사용자용 - 본인 주문 검증)
     @Transactional
-    public OrderResponse updateOrder(Long id, OrderAddressUpdateRequest request) {
+    public OrderResponse updateOrder(Long id, OrderAddressUpdateRequest request, String email) {
         CoffeeOrder order = orderRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 주문입니다. ID: " + id));
+
+        validateOrderOwner(order, email);
 
         // 배송 시작 전(ORDERED 상태)일 때만 수정 가능
         if (order.getStatus() != OrderStatus.ORDERED) {
@@ -294,6 +305,13 @@ public class OrderService {
 
         order.updateDeliveryInfo(request.address(), request.postcode());
         return OrderResponse.from(order);
+    }
+
+    // 주문 소유자 일치 검증 헬퍼 메서드
+    private void validateOrderOwner(CoffeeOrder order, String email) {
+        if (email == null || !order.getEmail().equalsIgnoreCase(email)) {
+            throw new IllegalArgumentException("본인의 주문만 조회/수정/취소할 수 있습니다.");
+        }
     }
 
     // 주문 목록 조회 (이메일 조건부 검색 지원)

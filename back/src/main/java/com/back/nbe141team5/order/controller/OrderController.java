@@ -4,6 +4,7 @@ import com.back.nbe141team5.order.dto.OrderAddressUpdateRequest;
 import com.back.nbe141team5.order.dto.OrderCreateRequest;
 import com.back.nbe141team5.order.dto.OrderResponse;
 import com.back.nbe141team5.order.service.OrderService;
+import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -29,8 +30,19 @@ public class OrderController {
     // 주문 목록 조회 (이메일 쿼리 파라미터 검색 지원)
     @GetMapping
     public ResponseEntity<List<OrderResponse>> getOrders(
-            @RequestParam(required = false) String email
+            HttpSession session
     ) {
+
+        String email = (String) session.getAttribute(
+                "verifiedOrderEmail"
+        );
+
+        if (email == null) {
+            throw new IllegalStateException(
+                    "이메일 인증이 필요합니다."
+            );
+        }
+
         List<OrderResponse> responses = orderService.getOrders(email);
         return ResponseEntity.ok(responses);
     }

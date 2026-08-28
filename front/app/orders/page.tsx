@@ -9,6 +9,7 @@ import {
 } from "@/types/order";
 
 const ORDERS_API = "http://localhost:8080/api/v1/orders";
+const VERIFICATION_API = "http://localhost:8080/api/v1/verification";
 
 function formatDateTime(value: string | null) {
     if (!value) return "-";
@@ -45,8 +46,15 @@ function getOrderActionMessage(status: OrderStatus) {
 }
 
 export default function CustomerOrdersPage() {
+    // 인증 단계: email(이메일 입력 → 인증번호 발송) → code(인증번호 입력 → 검증)
+    const [step, setStep] = useState<"email" | "code">("email");
     const [emailInput, setEmailInput] = useState("");
-    const [searchedEmail, setSearchedEmail] = useState("");
+    const [codeInput, setCodeInput] = useState("");
+    const [verifiedEmail, setVerifiedEmail] = useState("");
+
+    const [sendingCode, setSendingCode] = useState(false);
+    const [verifying, setVerifying] = useState(false);
+
     const [orders, setOrders] = useState<Order[]>([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
@@ -58,25 +66,97 @@ export default function CustomerOrdersPage() {
     const [editAddress, setEditAddress] = useState("");
     const [editPostcode, setEditPostcode] = useState("");
 
-    // 이메일 기반 주문 조회 (GET /api/v1/orders?email=xxx)
-    const handleSearch = async (e: React.FormEvent) => {
+    // 인증번호 발송 (POST /api/v1/verification/send)
+    const handleSendCode = async (e: React.SyntheticEvent) => {
         e.preventDefault();
-        if (!emailInput.trim()) {
+        const email = emailInput.trim();
+        if (!email) {
             alert("이메일을 입력해주세요.");
             return;
         }
 
+        setSendingCode(true);
+        setError("");
+
+        try {
+            const response = await fetch(`${VERIFICATION_API}/send`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                credentials: "include",
+                body: JSON.stringify({ email }),
+            });
+            if (!response.ok) {
+                setError("인증번호 전송 중 오류가 발생했습니다. 이메일 주소를 확인해주세요.");
+                return;
+            }
+            setCodeInput("");
+            setStep("code");
+        } catch (err) {
+            console.error(err);
+            setError("인증번호 전송 중 오류가 발생했습니다. 이메일 주소를 확인해주세요.");
+        } finally {
+            setSendingCode(false);
+        }
+    };
+
+    // 인증번호 검증 (POST /api/v1/verification/verify) → 성공 시 세션에 이메일 저장
+    const handleVerifyCode = async (e: React.FormEvent) => {
+        e.preventDefault();
+        const email = emailInput.trim();
+        const code = codeInput.trim();
+        if (!code) {
+            alert("인증번호를 입력해주세요.");
+            return;
+        }
+
+        setVerifying(true);
+        setError("");
+
+        try {
+            const response = await fetch(`${VERIFICATION_API}/verify`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                credentials: "include",
+                body: JSON.stringify({ email, code }),
+            });
+            if (!response.ok) {
+                setError("인증번호가 일치하지 않거나 만료되었습니다. 다시 시도해주세요.");
+                return;
+            }
+            setVerifiedEmail(email);
+            await fetchOrders();
+        } catch (err) {
+            console.error(err);
+            setError("인증번호가 일치하지 않거나 만료되었습니다. 다시 시도해주세요.");
+        } finally {
+            setVerifying(false);
+        }
+    };
+
+    // 인증 정보 초기화 후 이메일 입력 단계로 복귀
+    const resetVerification = () => {
+        setStep("email");
+        setCodeInput("");
+        setVerifiedEmail("");
+        setOrders([]);
+        setHasSearched(false);
+        setError("");
+    };
+
+    // 세션 이메일 기반 주문 조회 (GET /api/v1/orders)
+    const fetchOrders = async () => {
         setLoading(true);
         setError("");
         setHasSearched(true);
-        setSearchedEmail(emailInput.trim());
 
         try {
-            const response = await fetch(
-                `${ORDERS_API}?email=${encodeURIComponent(emailInput.trim())}`
-            );
+            const response = await fetch(ORDERS_API, {
+                credentials: "include",
+            });
             if (!response.ok) {
-                throw new Error("주문 내역을 불러오지 못했습니다.");
+                setError("주문 내역을 불러오는 중 오류가 발생했습니다.");
+                setOrders([]);
+                return;
             }
             const data: Order[] = await response.json();
             setOrders(Array.isArray(data) ? data : []);
@@ -90,11 +170,11 @@ export default function CustomerOrdersPage() {
     };
 
     const refreshOrders = async () => {
-        if (!searchedEmail) return;
+        if (!verifiedEmail) return;
         try {
-            const response = await fetch(
-                `${ORDERS_API}?email=${encodeURIComponent(searchedEmail)}`
-            );
+            const response = await fetch(ORDERS_API, {
+                credentials: "include",
+            });
             if (response.ok) {
                 const data: Order[] = await response.json();
                 setOrders(Array.isArray(data) ? data : []);
@@ -111,10 +191,12 @@ export default function CustomerOrdersPage() {
         try {
             const response = await fetch(`${ORDERS_API}/${id}`, {
                 method: "DELETE",
+                credentials: "include",
             });
 
             if (!response.ok) {
-                throw new Error("주문 취소에 실패했습니다.");
+                alert("주문 취소 처리 중 오류가 발생했습니다. (배송 준비 중인 주문은 취소할 수 없습니다.)");
+                return;
             }
 
             alert("주문이 정상적으로 취소되었습니다.");
@@ -153,6 +235,7 @@ export default function CustomerOrdersPage() {
             const response = await fetch(`${ORDERS_API}/${editingOrder.id}`, {
                 method: "PATCH",
                 headers: { "Content-Type": "application/json" },
+                credentials: "include",
                 body: JSON.stringify({
                     address: editAddress,
                     postcode: editPostcode,
@@ -160,7 +243,8 @@ export default function CustomerOrdersPage() {
             });
 
             if (!response.ok) {
-                throw new Error("배송지 수정에 실패했습니다.");
+                alert("배송지 수정 처리 중 오류가 발생했습니다.");
+                return;
             }
 
             alert("배송지 정보가 수정되었습니다.");
@@ -189,30 +273,75 @@ export default function CustomerOrdersPage() {
                 <p className="text-xs font-semibold tracking-widest text-[#9A7655]">ORDER LOOKUP</p>
                 <h1 className="text-3xl font-bold tracking-tight text-neutral-900">주문 내역 조회</h1>
                 <p className="text-sm text-neutral-500">
-                    주문 시 입력하셨던 이메일 주소를 입력하시면 주문 내역을 확인 및 수정/취소하실 수 있습니다.
+                    주문 시 입력하셨던 이메일로 인증번호를 받아 본인 확인 후 주문 내역을 확인 및 수정/취소하실 수 있습니다.
                 </p>
             </div>
 
-            {/* 이메일 검색 바 */}
-            <div className="rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm">
-                <form onSubmit={handleSearch} className="flex flex-col sm:flex-row gap-3">
-                    <input
-                        type="email"
-                        value={emailInput}
-                        onChange={(e) => setEmailInput(e.target.value)}
-                        placeholder="주문 시 사용한 이메일을 입력하세요 (예: user@example.com)"
-                        className="flex-1 rounded-xl border border-neutral-200 bg-[#FAFAF9] px-4 py-3 text-sm text-neutral-900 outline-none transition placeholder:text-neutral-400 focus:border-[#A77A52] focus:bg-white focus:ring-2 focus:ring-[#A77A52]/10"
-                        required
-                    />
-                    <button
-                        type="submit"
-                        disabled={loading}
-                        className="cursor-pointer rounded-xl bg-[#1F1B18] px-6 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-[#342D28] disabled:opacity-50"
-                    >
-                        {loading ? "조회 중..." : "주문 조회"}
-                    </button>
-                </form>
-            </div>
+            {/* 이메일 인증 영역 */}
+            {!verifiedEmail && (
+                <div className="rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm">
+                    {step === "email" ? (
+                        <form onSubmit={handleSendCode} className="flex flex-col sm:flex-row gap-3">
+                            <input
+                                type="email"
+                                value={emailInput}
+                                onChange={(e) => setEmailInput(e.target.value)}
+                                placeholder="주문 시 사용한 이메일을 입력하세요 (예: user@example.com)"
+                                className="flex-1 rounded-xl border border-neutral-200 bg-[#FAFAF9] px-4 py-3 text-sm text-neutral-900 outline-none transition placeholder:text-neutral-400 focus:border-[#A77A52] focus:bg-white focus:ring-2 focus:ring-[#A77A52]/10"
+                                required
+                            />
+                            <button
+                                type="submit"
+                                disabled={sendingCode}
+                                className="cursor-pointer rounded-xl bg-[#1F1B18] px-6 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-[#342D28] disabled:opacity-50"
+                            >
+                                {sendingCode ? "전송 중..." : "인증번호 받기"}
+                            </button>
+                        </form>
+                    ) : (
+                        <form onSubmit={handleVerifyCode} className="space-y-3">
+                            <p className="text-xs text-neutral-500">
+                                <span className="font-semibold text-[#8A684A]">{emailInput.trim()}</span> 으로 인증번호를 전송했습니다.
+                                메일함을 확인해 인증번호를 입력해주세요. (유효시간 5분)
+                            </p>
+                            <div className="flex flex-col sm:flex-row gap-3">
+                                <input
+                                    type="text"
+                                    value={codeInput}
+                                    onChange={(e) => setCodeInput(e.target.value)}
+                                    placeholder="인증번호 6자리"
+                                    className="flex-1 rounded-xl border border-neutral-200 bg-[#FAFAF9] px-4 py-3 text-sm text-neutral-900 outline-none transition placeholder:text-neutral-400 focus:border-[#A77A52] focus:bg-white focus:ring-2 focus:ring-[#A77A52]/10"
+                                    required
+                                />
+                                <button
+                                    type="submit"
+                                    disabled={verifying}
+                                    className="cursor-pointer rounded-xl bg-[#1F1B18] px-6 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-[#342D28] disabled:opacity-50"
+                                >
+                                    {verifying ? "확인 중..." : "인증 확인"}
+                                </button>
+                            </div>
+                            <div className="flex items-center gap-3 text-xs">
+                                <button
+                                    type="button"
+                                    onClick={handleSendCode}
+                                    disabled={sendingCode}
+                                    className="cursor-pointer font-semibold text-[#8A684A] hover:underline disabled:opacity-50"
+                                >
+                                    인증번호 재전송
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={resetVerification}
+                                    className="cursor-pointer text-neutral-400 hover:text-neutral-600"
+                                >
+                                    이메일 다시 입력
+                                </button>
+                            </div>
+                        </form>
+                    )}
+                </div>
+            )}
 
             {/* 에러 메시지 */}
             {error && (
@@ -222,13 +351,22 @@ export default function CustomerOrdersPage() {
             )}
 
             {/* 조회 결과 영역 */}
-            {hasSearched && !loading && (
+            {verifiedEmail && hasSearched && !loading && (
                 <div className="space-y-6">
                     <div className="flex items-center justify-between border-b border-neutral-200 pb-3">
                         <h2 className="text-sm font-semibold text-neutral-800">
-                            <span className="font-bold text-[#8A684A]">{searchedEmail}</span> 님의 주문 내역
+                            <span className="font-bold text-[#8A684A]">{verifiedEmail}</span> 님의 주문 내역
                         </h2>
-                        <span className="text-xs text-neutral-500">총 {orders.length}건</span>
+                        <div className="flex items-center gap-3">
+                            <span className="text-xs text-neutral-500">총 {orders.length}건</span>
+                            <button
+                                type="button"
+                                onClick={resetVerification}
+                                className="cursor-pointer text-xs font-semibold text-neutral-400 hover:text-neutral-600"
+                            >
+                                다른 이메일로 조회
+                            </button>
+                        </div>
                     </div>
 
                     {orders.length === 0 ? (

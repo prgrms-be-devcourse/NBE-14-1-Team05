@@ -267,7 +267,7 @@ export default function AdminOrdersPage() {
           <div>
             <h2 className="font-semibold text-neutral-900">주문 목록</h2>
             <p className="mt-1 text-sm text-neutral-400">
-              총 {orders.length}건의 주문
+              총 {loading ? "-" : totalElements}건의 주문
             </p>
           </div>
         </div>

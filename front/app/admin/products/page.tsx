@@ -401,30 +401,30 @@ export default function AdminProductsPage() {
 
         {/* 테이블 */}
         <div className="overflow-x-auto">
-          <table className="w-full table-fixed">
+          <table className="w-full min-w-[1000px] table-fixed">
             <thead>
               <tr className="bg-[#FAFAF9] text-left text-xs font-semibold uppercase tracking-wide text-neutral-500">
-                <th className="w-20 px-6 py-4">
+                <th className="w-20 px-6 py-4 whitespace-nowrap">
                   번호
                 </th>
 
-                <th className="w-72 px-6 py-4">
+                <th className="w-72 px-6 py-4 whitespace-nowrap">
                   상품
                 </th>
 
-                <th className="w-40 px-6 py-4">
+                <th className="w-40 px-6 py-4 whitespace-nowrap">
                   가격
                 </th>
 
-                <th className="px-6 py-4">
+                <th className="px-6 py-4 whitespace-nowrap">
                   설명
                 </th>
 
-                <th className="w-32 px-6 py-4 text-center">
+                <th className="w-32 px-6 py-4 text-center whitespace-nowrap">
                   상태
                 </th>
 
-                <th className="w-64 px-6 py-4 text-center">
+                <th className="w-64 px-6 py-4 text-center whitespace-nowrap">
                   관리
                 </th>
               </tr>
@@ -646,13 +646,14 @@ export default function AdminProductsPage() {
 
         {/* 페이징 */}
         {totalPages > 0 && (
-          <div className="flex items-center justify-between border-t border-neutral-100 px-6 py-4">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between border-t border-neutral-100 px-4 sm:px-6 py-4">
             <p className="text-xs text-neutral-400">
-              현재 조건 총 {totalElements}개 ·{" "}
-              {page + 1} / {totalPages} 페이지
+              <span>현재 조건 총 {totalElements}개</span>
+              <span className="mx-1.5 opacity-40">·</span>
+              <span className="whitespace-nowrap">{page + 1} / {totalPages} 페이지</span>
             </p>
 
-            <div className="flex items-center gap-1">
+            <div className="flex items-center gap-1 shrink-0 overflow-x-auto">
               {/* 이전 */}
               <button
                 type="button"
@@ -662,7 +663,7 @@ export default function AdminProductsPage() {
                   )
                 }
                 disabled={page === 0}
-                className="cursor-pointer rounded-lg border border-neutral-200 px-3 py-2 text-sm text-neutral-600 transition hover:bg-neutral-50 disabled:cursor-not-allowed disabled:opacity-30"
+                className="cursor-pointer whitespace-nowrap rounded-lg border border-neutral-200 px-3 py-2 text-sm text-neutral-600 transition hover:bg-neutral-50 disabled:cursor-not-allowed disabled:opacity-30"
               >
                 이전
               </button>
@@ -679,7 +680,7 @@ export default function AdminProductsPage() {
                     onClick={() =>
                       setPage(index)
                     }
-                    className={`h-9 min-w-9 cursor-pointer rounded-lg px-3 text-sm font-medium transition ${
+                    className={`h-9 min-w-9 cursor-pointer whitespace-nowrap rounded-lg px-3 text-sm font-medium transition ${
                       page === index
                         ? "bg-[#1F1B18] text-white"
                         : "text-neutral-500 hover:bg-neutral-100"
@@ -704,7 +705,7 @@ export default function AdminProductsPage() {
                 disabled={
                   page >= totalPages - 1
                 }
-                className="cursor-pointer rounded-lg border border-neutral-200 px-3 py-2 text-sm text-neutral-600 transition hover:bg-neutral-50 disabled:cursor-not-allowed disabled:opacity-30"
+                className="cursor-pointer whitespace-nowrap rounded-lg border border-neutral-200 px-3 py-2 text-sm text-neutral-600 transition hover:bg-neutral-50 disabled:cursor-not-allowed disabled:opacity-30"
               >
                 다음
               </button>

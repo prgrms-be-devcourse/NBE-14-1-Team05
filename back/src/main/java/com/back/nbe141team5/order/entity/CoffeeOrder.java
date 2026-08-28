@@ -13,7 +13,12 @@ import java.util.Objects;
 
 @Entity
 @Getter
-@Table(name = "orders")
+@Table(name = "orders",
+        indexes = {
+                @Index(name = "idx_orders_delivery_date", columnList = "deliveryDate, orderDate"),
+                @Index(name = "idx_orders_email_status_date", columnList = "email, status, orderDate"),
+                @Index(name = "idx_orders_status_date", columnList = "status,orderDate")
+        })
 @NoArgsConstructor
 public class CoffeeOrder extends BaseEntity {
 
@@ -115,7 +120,7 @@ public class CoffeeOrder extends BaseEntity {
     // 배송지 및 우편번호 수정
     public void updateDeliveryInfo(String address, String postcode) {
 
-        if(this.status != OrderStatus.ORDERED) {
+        if (this.status != OrderStatus.ORDERED) {
             throw new IllegalArgumentException("주문 완료 상태일 때만 배송지를 변경할 수 있습니다.");
         }
         if (address == null || address.isBlank()) {

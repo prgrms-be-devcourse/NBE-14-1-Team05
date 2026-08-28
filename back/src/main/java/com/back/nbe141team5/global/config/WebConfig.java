@@ -19,7 +19,8 @@ public class WebConfig implements WebMvcConfigurer {
                         "PATCH",
                         "DELETE",
                         "OPTIONS"
-                );
+                )
+                .allowCredentials(true);
     }
 
     // 업로드한 이미지 파일을 브라우저에서 접근할 수 있게 설정

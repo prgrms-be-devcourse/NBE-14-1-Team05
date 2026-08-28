@@ -100,23 +100,31 @@ public class AdminProductService {
         productRepository.delete(product);
     }
 
-    // 관리자 상품 목록 조회
+    // 관리자 상품 목록 조회 (검색어 지원)
     @Transactional(readOnly = true)
     public Page<Product> getProducts(
             int page,
-            String filter
+            String filter,
+            String search
     ) {
         Pageable pageable = PageRequest.of(page, 10);
+        boolean hasSearch = search != null && !search.trim().isEmpty();
 
         if ("ACTIVE".equalsIgnoreCase(filter)) {
-            return productRepository.findAllByIsActiveTrue(pageable);
+            return hasSearch
+                    ? productRepository.findAllByNameContainingIgnoreCaseAndIsActiveTrue(search.trim(), pageable)
+                    : productRepository.findAllByIsActiveTrue(pageable);
         }
 
         if ("INACTIVE".equalsIgnoreCase(filter)) {
-            return productRepository.findAllByIsActiveFalse(pageable);
+            return hasSearch
+                    ? productRepository.findAllByNameContainingIgnoreCaseAndIsActiveFalse(search.trim(), pageable)
+                    : productRepository.findAllByIsActiveFalse(pageable);
         }
 
-        return productRepository.findAll(pageable);
+        return hasSearch
+                ? productRepository.findAllByNameContainingIgnoreCase(search.trim(), pageable)
+                : productRepository.findAll(pageable);
     }
 
     // 판매중 상품 개수

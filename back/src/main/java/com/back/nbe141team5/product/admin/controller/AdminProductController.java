@@ -31,10 +31,11 @@ public class AdminProductController {
     @ResponseStatus(HttpStatus.OK)
     public AdminProductPageResponse getProducts(
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "ACTIVE") String filter
+            @RequestParam(defaultValue = "ACTIVE") String filter,
+            @RequestParam(required = false) String search
     ) {
         var products = adminProductService
-                .getProducts(page, filter)
+                .getProducts(page, filter, search)
                 .map(AdminProductResponse::from);
 
         long activeCount =

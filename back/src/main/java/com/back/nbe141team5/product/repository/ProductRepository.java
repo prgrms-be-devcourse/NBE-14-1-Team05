@@ -26,4 +26,11 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
     long countByIsActiveTrue();
 
     long countByIsActiveFalse();
+
+    // 상품명 검색 페이징 조회 (대소문자 무시)
+    Page<Product> findAllByNameContainingIgnoreCaseAndIsActiveTrue(String name, Pageable pageable);
+
+    Page<Product> findAllByNameContainingIgnoreCaseAndIsActiveFalse(String name, Pageable pageable);
+
+    Page<Product> findAllByNameContainingIgnoreCase(String name, Pageable pageable);
 }

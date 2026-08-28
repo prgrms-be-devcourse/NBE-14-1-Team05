@@ -311,6 +311,7 @@ public class OrderService {
     @Transactional(readOnly = true)
     public Page<OrderResponse> getAdminOrders(
             String email,
+            String productName,
             OrderStatus status,
             LocalDate startDate,
             LocalDate endDate,
@@ -319,7 +320,7 @@ public class OrderService {
         LocalDateTime startDateTime = (startDate != null) ? startDate.atStartOfDay() : null;
         LocalDateTime endDateTime = (endDate != null) ? endDate.atTime(LocalTime.MAX) : null;
 
-        return orderRepository.searchOrders(email, status, startDateTime, endDateTime, pageable)
+        return orderRepository.searchOrders(email, productName, status, startDateTime, endDateTime, pageable)
                 .map(OrderResponse::from);
     }
 }

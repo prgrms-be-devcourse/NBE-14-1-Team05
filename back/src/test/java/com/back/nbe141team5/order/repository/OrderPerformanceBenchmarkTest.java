@@ -151,7 +151,7 @@ class OrderPerformanceBenchmarkTest {
         LocalDateTime endDate = LocalDateTime.now();
         StopWatch sw3 = new StopWatch();
         sw3.start();
-        var pagedOrders = orderRepository.searchOrders("user", OrderStatus.ORDERED, startDate, endDate, PageRequest.of(0, 10));
+        var pagedOrders = orderRepository.searchOrders("user", null, OrderStatus.ORDERED, startDate, endDate, PageRequest.of(0, 10));
         sw3.stop();
         System.out.printf("3. 관리자 주문 다중 조건 검색 및 페이징 (%d건 중 10건) : %d ms\n", pagedOrders.getTotalElements(), sw3.getTotalTimeMillis());
 

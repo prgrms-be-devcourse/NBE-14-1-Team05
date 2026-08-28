@@ -28,12 +28,13 @@ public class AdminOrderController {
     @GetMapping
     public ResponseEntity<Page<OrderResponse>> getOrders(
             @RequestParam(required = false) String email,
+            @RequestParam(required = false) String productName,
             @RequestParam(required = false) OrderStatus status,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate,
             @PageableDefault(size = 10, sort = "orderDate", direction = Sort.Direction.DESC) Pageable pageable
     ) {
-        Page<OrderResponse> responses = orderService.getAdminOrders(email, status, startDate, endDate, pageable);
+        Page<OrderResponse> responses = orderService.getAdminOrders(email, productName, status, startDate, endDate, pageable);
         return ResponseEntity.ok(responses);
     }
 

@@ -7,3 +7,9 @@ spring:
   jpa:
     hibernate:
       ddl-auto: create-drop
+
+  mail:
+     host: localhost
+     port: 3025
+     username: test
+     password: test

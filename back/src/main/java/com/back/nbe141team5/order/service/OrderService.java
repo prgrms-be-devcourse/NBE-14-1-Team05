@@ -174,14 +174,14 @@ public class OrderService {
         return content.toString();
     }
 
-    // 합배송 (주문 병합) 함수 -> CoffeeOrder 객체 반환
+    // 합배송 (주문 병합) 함수 -> 동일 이메일 + 배송지 기준 탐색
     private Optional<CoffeeOrder> tryMergeWithExistingOrder(OrderCreateRequest request, LocalDateTime now) {
-        return orderRepository.findTopByEmailAndStatusOrderByOrderDateDesc(request.email(), OrderStatus.ORDERED)
-                .filter(order -> order.isSameAddress(request.address(), request.postcode()))
+        return orderRepository.findTopByEmailAndAddressAndPostcodeAndStatusOrderByOrderDateDesc(
+                        request.email(), request.address(), request.postcode(), OrderStatus.ORDERED)
                 .filter(order -> DeliveryPolicyUtils.isSameDeliveryGroup(order.getOrderDate(), now))
                 .map(order -> {
                     mergeItemsToOrder(request, order);
-                    return order;  // 수정 order.getId() -> order 엔티티 자체 반환
+                    return order;
                 });
     }
 

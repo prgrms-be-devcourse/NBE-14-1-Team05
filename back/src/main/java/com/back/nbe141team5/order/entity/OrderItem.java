@@ -24,6 +24,8 @@ public class OrderItem {
 
     private Integer quantity;
 
+    private Integer price;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "order_id")
     private CoffeeOrder coffeeOrder;
@@ -36,6 +38,7 @@ public class OrderItem {
         this.product = product;
         this.productName = product.getName();
         this.quantity = quantity;
+        this.price = product.getPrice();
     }
 
     public void setCoffeeOrder(CoffeeOrder coffeeOrder) {

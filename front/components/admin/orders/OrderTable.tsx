@@ -35,13 +35,13 @@ export default function OrderTable({
 }: OrderTableProps) {
   return (
     <div className="overflow-x-auto">
-      <table className="w-full min-w-[900px] table-fixed">
+      <table className="w-full min-w-[1100px] table-fixed">
         <thead>
           <tr className="bg-[#FAFAF9] text-left text-xs font-semibold text-neutral-500">
             <th className="w-14 px-3 py-4 text-center whitespace-nowrap">
               번호
             </th>
-            <th className="px-6 py-4">이메일</th>
+            <th className="w-64 px-6 py-4 whitespace-nowrap">이메일</th>
             <th className="w-36 px-4 py-4 whitespace-nowrap">배송일자</th>
             <th
               onClick={() => onSortToggle("orderDate")}

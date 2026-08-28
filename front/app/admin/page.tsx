@@ -12,6 +12,7 @@ export default function AdminPage() {
   const [productCount, setProductCount] = useState(0);
   const [productPrices, setProductPrices] = useState<Record<string, number>>({});
   const [orders, setOrders] = useState<Order[]>([]);
+  const [totalOrderCount, setTotalOrderCount] = useState(0);
   const [stats, setStats] = useState<AdminStats | null>(null);
   const [salesTab, setSalesTab] = useState<SalesTab>("ALL");
   const [loading, setLoading] = useState(true);
@@ -52,6 +53,7 @@ export default function AdminPage() {
           const orderList =
             orderData.content ?? (Array.isArray(orderData) ? orderData : []);
           setOrders(orderList);
+          setTotalOrderCount(orderData.totalElements ?? orderList.length);
         }
 
         // 관리자 통계 지표 종합 조회
@@ -191,7 +193,7 @@ export default function AdminPage() {
       <StatsKpiCards
         stats={stats}
         productCount={productCount}
-        ordersCount={orders.length}
+        ordersCount={totalOrderCount}
         loading={loading}
         onTotalRevenueClick={scrollToStats}
       />

@@ -214,7 +214,7 @@ export default function AdminLayout({
       </aside>
 
       {/* 콘텐츠 */}
-      <main className="min-w-0 flex-1 p-10">
+      <main className="min-w-0 flex-1 p-4 sm:p-6 lg:p-10">
         <div className="mx-auto max-w-[1440px]">
           {children}
         </div>

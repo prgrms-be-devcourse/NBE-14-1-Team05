@@ -18,10 +18,12 @@ public class ProductService {
     private final ProductRepository productRepository;
 
     // 활성 상품 목록 페이징 조회
-    public Page<Product> getProductList(int page) {
+    public Page<Product> getProductList(int page, String search) {
         Pageable pageable = PageRequest.of(page, 6);
-
-        return productRepository.findAllByIsActiveTrue(pageable);
+        boolean hasSearch = search != null && !search.trim().isEmpty();
+        return hasSearch
+                ? productRepository.findAllByNameContainingIgnoreCaseAndIsActiveTrue(search.trim(), pageable)
+                : productRepository.findAllByIsActiveTrue(pageable);
     }
 
     // 활성 상품 상세 조회

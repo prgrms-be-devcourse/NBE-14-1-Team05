@@ -13,12 +13,14 @@ import org.springframework.web.bind.annotation.*;
 public class ProductController {
     public final ProductService productService;
 
-    //전체 상품 조회 API
+    //전체 상품 조회 API (검색어 지원)
     @GetMapping
-    public ResponseEntity<Page<ProductResponse>> getProducts(@RequestParam(defaultValue = "0") int page) {
-        //Page는 자체적으로 map() 지원
-        Page<ProductResponse> responses = productService.getProductList(page).map(ProductResponse::from);
-        return ResponseEntity.ok(responses);  //상태 코드 200 & 데이터 보내기
+    public ResponseEntity<Page<ProductResponse>> getProducts(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(required = false) String search
+    ) {
+        Page<ProductResponse> responses = productService.getProductList(page, search).map(ProductResponse::from);
+        return ResponseEntity.ok(responses);
     }
 
     //특정 상품 상세 조회 API

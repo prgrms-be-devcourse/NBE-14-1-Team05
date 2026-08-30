@@ -61,7 +61,9 @@ export default function AdminOrdersPage() {
   // 전체 주문 상태별 누적 개수 집계
   const fetchStatusCounts = async () => {
     try {
-      const res = await fetch(`${ORDERS_API}?page=0&size=1000`);
+      const res = await fetch(`${ORDERS_API}?page=0&size=1000`, {
+        credentials: "include",
+      });
       if (res.ok) {
         const data = await res.json();
         const all: Order[] = data.content ?? (Array.isArray(data) ? data : []);
@@ -104,7 +106,9 @@ export default function AdminOrdersPage() {
           url += `&status=${selectedStatus}`;
         }
       }
-      const response = await fetch(url);
+      const response = await fetch(url, {
+        credentials: "include",
+      });
       if (!response.ok) {
         throw new Error("주문 목록을 불러오지 못했습니다.");
       }
@@ -178,7 +182,9 @@ export default function AdminOrdersPage() {
     setDetailError("");
     setDetailLoading(true);
     try {
-      const response = await fetch(`${ORDERS_API}/${id}`);
+      const response = await fetch(`${ORDERS_API}/${id}`, {
+        credentials: "include",
+      });
       if (!response.ok) {
         throw new Error("주문 상세를 불러오지 못했습니다.");
       }
@@ -211,6 +217,7 @@ export default function AdminOrdersPage() {
       const response = await fetch(`${ORDERS_API}/${orderId}/status`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
+        credentials: "include",
         body: JSON.stringify({ status: nextStatus }),
       });
 

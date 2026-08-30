@@ -80,13 +80,18 @@ export default function AdminLayout({
   // 로그아웃
   const handleLogout = async () => {
     try {
-      const response = await fetch("/api/admin/auth/logout", {
-        method: "POST",
-      });
+      const backendBaseUrl =
+        process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:8080";
 
-      if (!response.ok) {
-        throw new Error("로그아웃 실패");
-      }
+      await Promise.allSettled([
+        fetch("/api/admin/auth/logout", {
+          method: "POST",
+        }),
+        fetch(`${backendBaseUrl}/api/v1/admin/auth/logout`, {
+          method: "POST",
+          credentials: "include",
+        }),
+      ]);
 
       router.replace("/admin/login");
       router.refresh();

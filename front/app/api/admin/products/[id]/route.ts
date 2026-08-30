@@ -8,11 +8,13 @@ export async function GET(
 ) {
   try {
     const { id } = await params;
+    const cookieHeader = request.headers.get("cookie") ?? "";
 
     const response = await fetch(
       `${API_BASE_URL}/api/v1/admin/products/${id}`,
       {
         cache: "no-store",
+        headers: cookieHeader ? { cookie: cookieHeader } : {},
       }
     );
 
@@ -44,6 +46,7 @@ export async function PUT(
   try {
     const { id } = await params;
     const body = await request.json();
+    const cookieHeader = request.headers.get("cookie") ?? "";
 
     const response = await fetch(
       `${API_BASE_URL}/api/v1/admin/products/${id}`,
@@ -51,6 +54,7 @@ export async function PUT(
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
+          ...(cookieHeader ? { cookie: cookieHeader } : {}),
         },
         body: JSON.stringify(body),
       }
@@ -91,11 +95,13 @@ export async function DELETE(
 ) {
   try {
     const { id } = await params;
+    const cookieHeader = request.headers.get("cookie") ?? "";
 
     const response = await fetch(
       `${API_BASE_URL}/api/v1/admin/products/${id}`,
       {
         method: "DELETE",
+        headers: cookieHeader ? { cookie: cookieHeader } : {},
       }
     );
 

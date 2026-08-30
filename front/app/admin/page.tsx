@@ -47,6 +47,7 @@ export default function AdminPage() {
         // 최근 주문 목록 조회 (페이징 객체 대응)
         const orderResponse = await fetch(
           "http://localhost:8080/api/v1/admin/orders?page=0&size=5",
+          { credentials: "include" },
         );
         if (orderResponse.ok) {
           const orderData = await orderResponse.json();
@@ -59,6 +60,7 @@ export default function AdminPage() {
         // 관리자 통계 지표 종합 조회
         const statsResponse = await fetch(
           "http://localhost:8080/api/v1/admin/stats",
+          { credentials: "include" },
         );
         if (statsResponse.ok) {
           const statsData = await statsResponse.json();
@@ -80,6 +82,7 @@ export default function AdminPage() {
     try {
       const response = await fetch(
         `http://localhost:8080/api/v1/admin/orders?startDate=${date}&endDate=${date}&size=100`,
+        { credentials: "include" },
       );
       if (response.ok) {
         const data = await response.json();

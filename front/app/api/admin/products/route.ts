@@ -17,10 +17,13 @@ export async function GET(request: Request) {
       backendUrl += `&search=${encodeURIComponent(search.trim())}`;
     }
 
+    const cookieHeader = request.headers.get("cookie") ?? "";
+
     const response = await fetch(
       backendUrl,
       {
         cache: "no-store",
+        headers: cookieHeader ? { cookie: cookieHeader } : {},
       }
     );
 
@@ -56,6 +59,7 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   try {
     const body = await request.json();
+    const cookieHeader = request.headers.get("cookie") ?? "";
 
     const response = await fetch(
       `${API_BASE_URL}/api/v1/admin/products`,
@@ -63,6 +67,7 @@ export async function POST(request: Request) {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          ...(cookieHeader ? { cookie: cookieHeader } : {}),
         },
         body: JSON.stringify(body),
       }

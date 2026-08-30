@@ -9,11 +9,13 @@ export async function PATCH(
 ) {
   try {
     const { id } = await params;
+    const cookieHeader = request.headers.get("cookie") ?? "";
 
     const response = await fetch(
       `${API_BASE_URL}/api/v1/admin/products/${id}/activate`,
       {
         method: "PATCH",
+        headers: cookieHeader ? { cookie: cookieHeader } : {},
       }
     );
 

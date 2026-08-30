@@ -15,3 +15,9 @@ spring:
     port: 3025
     username: test
     password: test
+
+admin:
+  code: ${ADMIN_CODE:test-admin-code}
+
+cors:
+  allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:3000}

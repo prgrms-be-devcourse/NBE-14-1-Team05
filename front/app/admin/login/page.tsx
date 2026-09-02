@@ -2,6 +2,9 @@
 
 import { FormEvent, useState } from "react";
 
+const BACKEND_BASE_URL =
+  process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:8080";
+
 export default function AdminLoginPage() {
   const [adminCode, setAdminCode] = useState("");
   const [error, setError] = useState("");
@@ -14,17 +17,29 @@ export default function AdminLoginPage() {
     setLoading(true);
 
     try {
-      const response = await fetch("/api/admin/auth/login", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          adminCode,
+      const [nextRes, springRes] = await Promise.all([
+        fetch("/api/admin/auth/login", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            adminCode,
+          }),
         }),
-      });
+        fetch(`${BACKEND_BASE_URL}/api/v1/admin/auth/login`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          credentials: "include",
+          body: JSON.stringify({
+            adminCode,
+          }),
+        }),
+      ]);
 
-      if (!response.ok) {
+      if (!nextRes.ok || !springRes.ok) {
         setError("관리자 코드가 올바르지 않습니다.");
         return;
       }

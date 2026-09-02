@@ -32,25 +32,19 @@ public class OrderController {
     public ResponseEntity<List<OrderResponse>> getOrders(
             HttpSession session
     ) {
-
-        String email = (String) session.getAttribute(
-                "verifiedOrderEmail"
-        );
-
-        if (email == null) {
-            throw new IllegalStateException(
-                    "이메일 인증이 필요합니다."
-            );
-        }
-
+        String email = getVerifiedEmail(session);
         List<OrderResponse> responses = orderService.getOrders(email);
         return ResponseEntity.ok(responses);
     }
 
     // 개별 주문 상세 조회
     @GetMapping("/{id}")
-    public ResponseEntity<OrderResponse> getOrderById(@PathVariable Long id) {
-        OrderResponse response = orderService.getOrderById(id);
+    public ResponseEntity<OrderResponse> getOrderById(
+            @PathVariable Long id,
+            HttpSession session
+    ) {
+        String email = getVerifiedEmail(session);
+        OrderResponse response = orderService.getOrderById(id, email);
         return ResponseEntity.ok(response);
     }
 
@@ -58,16 +52,31 @@ public class OrderController {
     @PatchMapping("/{id}")
     public ResponseEntity<OrderResponse> updateOrder(
             @PathVariable Long id,
-            @RequestBody OrderAddressUpdateRequest request
+            @RequestBody OrderAddressUpdateRequest request,
+            HttpSession session
     ) {
-        OrderResponse response = orderService.updateOrder(id, request);
+        String email = getVerifiedEmail(session);
+        OrderResponse response = orderService.updateOrder(id, request, email);
         return ResponseEntity.ok(response);
     }
 
     // 주문 취소
     @DeleteMapping("/{id}")
-    public ResponseEntity<OrderResponse> cancelOrder(@PathVariable Long id) {
-        OrderResponse response = orderService.cancelOrder(id);
+    public ResponseEntity<OrderResponse> cancelOrder(
+            @PathVariable Long id,
+            HttpSession session
+    ) {
+        String email = getVerifiedEmail(session);
+        OrderResponse response = orderService.cancelOrder(id, email);
         return ResponseEntity.ok(response);
+    }
+
+    // 세션 인증 이메일 검증 헬퍼 메서드
+    private String getVerifiedEmail(HttpSession session) {
+        String email = (String) session.getAttribute("verifiedOrderEmail");
+        if (email == null) {
+            throw new IllegalStateException("이메일 인증이 필요합니다.");
+        }
+        return email;
     }
 }

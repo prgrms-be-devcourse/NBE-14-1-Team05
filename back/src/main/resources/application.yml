@@ -32,3 +32,10 @@ spring:
           connectiontimeout: 5000
           timeout: 5000
           writetimeout: 5000
+
+admin:
+  code: ${ADMIN_CODE}
+#  프론트에서 설정한 .env 파일의 admin 코드 번호
+
+cors:
+  allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:3000}
